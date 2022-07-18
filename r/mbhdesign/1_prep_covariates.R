@@ -14,8 +14,9 @@ library(ggplot2)
 library(viridis)
 library(stars)
 library(starsExtra)
+library(geosphere)
 
-source("R/mbhdesign/functions.R")
+source("r/mbhdesign/functions.R")
 
 # set CRS
 wgscrs <- CRS("+proj=longlat +datum=WGS84")
@@ -24,10 +25,13 @@ sppcrs <- CRS("+proj=utm +zone=50 +south +datum=WGS84 +units=m +no_defs")       
 # get and sort spatial boundaries
 aumpa <- readOGR("data/spatial/shapefiles/AustraliaNetworkMarineParks.shp")     # all aus mpas
 aumpa <- aumpa[aumpa$ResName %in% c("Dampier"), ]
+aumpa <- spTransform(aumpa, sppcrs)
 # aumpa <- aumpa[aumpa$ZoneName == "National Park Zone", ]
 
-bathy <- raster("data/spatial/rasters/tile2c.txt")
-plot(bathy)
+bathy <- raster("data/spatial/rasters/large/North_West_Shelf_DEM_v2_Bathymetry_2020_30m_MSL_cog.tif")
+crs(bathy) <- sppcrs
+# bathy <- raster("data/spatial/rasters/tile2c.txt") # Old tile bathy
+# plot(bathy)
 
 # crop to general project area
 bathy <- crop(bathy, extent(aumpa))
@@ -36,14 +40,16 @@ plot(bathy)
 plot(aumpa, add = T)
 
 # transform to utm
-proj4string(bathy) <- wgscrs
-bathy <- projectRaster(bathy, crs = sppcrs)
-plot(bathy)
-proj4string(aumpa) <- wgscrs
-aumpa          <- spTransform(aumpa, sppcrs)
-plot(aumpa, add = T)
-saveRDS(aumpa, "output/aus_mp_dampier_utm.rds")
-saveRDS(bathy, "output/ga_250_dampier_utm.rds")
+# proj4string(bathy) <- wgscrs
+# bathy <- projectRaster(bathy, crs = sppcrs)
+# plot(bathy)
+# proj4string(aumpa) <- wgscrs
+# aumpa          <- spTransform(aumpa, sppcrs)
+# plot(aumpa, add = T)
+
+saveRDS(aumpa, "output/mbh/aus_mp_dampier_utm.rds")
+# saveRDS(bathy, "output/mbh/ga_250_dampier_utm.rds")
+saveRDS(bathy, "output/mbh/ga_30_dampier_utm.rds")
 
 # create df of aggregated raster
 bathydf <- as.data.frame(bathy, xy = TRUE, na.rm = TRUE)
@@ -54,7 +60,7 @@ npzcent <- centroid(aumpa[aumpa$ZoneName == "National Park Zone", ])
 
 ## Generate sites ----
 # define project areas
-studysite  <- newstrip(npzcent, xdim = 5000, ydim = 8000,
+studysite  <- newstrip(npzcent, xdim = 8000, ydim = 8000,
                        heading = 0, siteID = "1", projcrs = sppcrs)              # make a site box
 plot(bathy)
 plot(aumpa, add = T)
