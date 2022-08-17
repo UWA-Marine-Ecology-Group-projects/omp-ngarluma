@@ -47,12 +47,16 @@ cwatr  <- st_read("data/spatial/shapefiles/amb_coastal_waters_limit.shp")       
 # bathy <- raster("data/spatial/rasters/large/tile2c.txt") # Old tile bathy
 # crs(bathy) <- wgscrs
 
-damp_spat <- as_Spatial(damp_mp)
+# damp_spat <- as_Spatial(damp_mp)
 # Crop to general project area
 # bathy <- crop(bathy, buffer(damp_spat, width = 0.05))                           # Crop to general study area 
 # bathy[bathy > 0] <- NA
 # plot(bathy)
 # plot(damp_mp, add = T)
+
+bathy <- readRDS("data/spatial/rasters/GA_250m_bathy-trimmed.RDS")
+bathy <- rasterFromXYZ(bathy)
+crs(bathy) <- wgscrs
 
 slope <- terrain(bathy, opt='slope', unit='degrees')
 aspect <- terrain(bathy, opt='aspect', unit='degrees')
@@ -60,8 +64,8 @@ hill <- hillShade(slope, aspect, angle = 70, azimuth = 0)
 
 # To dataframes for plotting
 hill <- as.data.frame(hill, xy = T, na.rm = T)
-# bathy <- as.data.frame(bathy, xy = T, na.rm = T)
-bathy <- readRDS("data/spatial/rasters/GA_250m_bathy-trimmed.RDS")
+bathy <- as.data.frame(bathy, xy = T, na.rm = T)
+
 # colnames(bathy)[3] <- "Depth"
 
 # saveRDS(bathy, file = "data/spatial/rasters/GA_250m_bathy-trimmed.RDS")
@@ -85,7 +89,7 @@ p1 <- ggplot() +
   coord_sf(xlim = c(116.8333, 117.5167), ylim = c(-20.56667, -20.3)) +
   labs(y = "Latitude", x = "Longitude")+
   theme_minimal()
-png(filename = "plots/exploratory-site-plot.png", height = 6, width = 8,
+png(filename = "plots/exploratory-site-plot.png", height = 4, width = 10,
     res = 300, units = "in")
 p1
 dev.off()
