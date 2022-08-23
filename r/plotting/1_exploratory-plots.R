@@ -77,7 +77,7 @@ p1 <- ggplot() +
   new_scale_fill() +
   geom_tile(data = bathy, aes(x = x, y = y, fill = Depth), alpha = 0.7) +
   scale_fill_viridis() +
-  geom_contour(data = bathy, aes(x = x, y = y, z = Depth), binwidth = 10, 
+  geom_contour(data = bathy, aes(x = x, y = y, z = Depth), breaks = c( -30, -70), 
                colour = "white", size = 0.1) +
   geom_sf(data = aus, fill = "seashell2", colour = "black", size = 0.1) +
   geom_sf(data = damp_mp, aes(color = ZoneName), fill = NA, size = 0.4) +
@@ -85,7 +85,8 @@ p1 <- ggplot() +
                                 "National Park Zone" = "#7bbc63",
                                 "Multiple Use Zone" = "#b9e6fb")) +
   geom_sf(data = cwatr, colour = "firebrick", alpha = 1, size = 0.4) +
-  # coord_sf(xlim = c(min(bathy$x), max(bathy$x)), ylim = c(min(bathy$y), max(bathy$y))) +
+  annotate(geom = "text", x = 117.1, y = -20.385, label = "30m",
+           color = "white", size = 2) +
   coord_sf(xlim = c(116.8333, 117.5167), ylim = c(-20.56667, -20.3)) +
   labs(y = "Latitude", x = "Longitude")+
   theme_minimal()
@@ -94,27 +95,27 @@ png(filename = "plots/exploratory-site-plot.png", height = 4, width = 10,
 p1
 dev.off()
 
-p2 <- ggplot() + # Inset closer to the NPZ and HPZ
-  geom_tile(data = hill,aes(x = x, y = y, fill = layer), alpha = 1) +
-  scale_fill_gradient(low = "white", high = "black", guide = "none") +
-  new_scale_fill() +
-  geom_tile(data = bathy, aes(x = x, y = y, fill = Depth), alpha = 0.7) +
-  scale_fill_viridis() +
-  geom_contour(data = bathy, aes(x = x, y = y, z = Depth), binwidth = 10, 
-               colour = "white", size = 0.1) +
-  geom_sf(data = aus, fill = "seashell2", colour = "black", size = 0.1) +
-  geom_sf(data = damp_mp, aes(color = ZoneName), fill = NA, size = 0.4) +
-  scale_color_manual(values = c("Habitat Protection Zone" = "#fff8a3",
-                                "National Park Zone" = "#7bbc63",
-                                "Multiple Use Zone" = "#b9e6fb")) +
-  geom_sf(data = cwatr, colour = "firebrick", alpha = 1, size = 0.4) +
-  # coord_sf(xlim = c(min(bathy$x), max(bathy$x)), ylim = c(min(bathy$y), max(bathy$y))) +
-  coord_sf(xlim = c(116.84, 117.15), ylim = c(-20.4, -20.3)) +
-  labs(y = "Latitude", x = "Longitude")+
-  theme_minimal()
-p2
-
-png(filename = "plots/exploratory-site-plot-w-inset.png", height = 8, width = 8,
-    res = 300, units = "in")
-p1 / p2 + plot_layout(guides = "collect")
-dev.off()
+# p2 <- ggplot() + # Inset closer to the NPZ and HPZ
+#   geom_tile(data = hill,aes(x = x, y = y, fill = layer), alpha = 1) +
+#   scale_fill_gradient(low = "white", high = "black", guide = "none") +
+#   new_scale_fill() +
+#   geom_tile(data = bathy, aes(x = x, y = y, fill = Depth), alpha = 0.7) +
+#   scale_fill_viridis() +
+#   geom_contour(data = bathy, aes(x = x, y = y, z = Depth), binwidth = 10, 
+#                colour = "white", size = 0.1) +
+#   geom_sf(data = aus, fill = "seashell2", colour = "black", size = 0.1) +
+#   geom_sf(data = damp_mp, aes(color = ZoneName), fill = NA, size = 0.4) +
+#   scale_color_manual(values = c("Habitat Protection Zone" = "#fff8a3",
+#                                 "National Park Zone" = "#7bbc63",
+#                                 "Multiple Use Zone" = "#b9e6fb")) +
+#   geom_sf(data = cwatr, colour = "firebrick", alpha = 1, size = 0.4) +
+#   # coord_sf(xlim = c(min(bathy$x), max(bathy$x)), ylim = c(min(bathy$y), max(bathy$y))) +
+#   coord_sf(xlim = c(116.84, 117.15), ylim = c(-20.4, -20.3)) +
+#   labs(y = "Latitude", x = "Longitude")+
+#   theme_minimal()
+# p2
+# 
+# png(filename = "plots/exploratory-site-plot-w-inset.png", height = 8, width = 8,
+#     res = 300, units = "in")
+# p1 / p2 + plot_layout(guides = "collect")
+# dev.off()
