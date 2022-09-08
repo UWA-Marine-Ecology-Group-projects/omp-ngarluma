@@ -106,7 +106,7 @@ cbathy <- do.call("rbind", lapply(cbathy, as.data.frame))
 test <- as.bathy(cbathy)
 plot.bathy(test)
 
-test1 <- get.transect(test, loc = T, dis = T)
+# test1 <- get.transect(test, loc = T, dis = T)
 test1 <- get.transect(test, x1 = 112.1075, x2 = 113.1075, y1 = -14.1075, y2 = -13.1-75, distance = T)
 marmap::plotProfile(test1)
 
