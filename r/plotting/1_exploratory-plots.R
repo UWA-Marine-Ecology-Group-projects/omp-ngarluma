@@ -10,6 +10,7 @@ rm(list = ls())
 
 # Load libraries
 library(dplyr)
+library(nngeo)
 library(sf)
 library(rgeos)
 library(rnaturalearth)
@@ -23,6 +24,7 @@ library(GlobalArchive)
 library(tidyverse)
 library(viridis)
 library(marmap)
+library(geosphere)
 
 working.dir <- getwd()
 setwd(working.dir)
@@ -96,18 +98,28 @@ p1
 dev.off()
 
 # Bathy cross section
-test <- marmap::as.bathy(bathy)
-test <- read.bathy("data/spatial/rasters/large/tile2c.txt")
-tes <- read.table("data/spatial/rasters/large/tile2c.txt")
-cbaths <- list.files("data/spatial/rasters/large", "*tile", full.names = TRUE)
-cbathy <- lapply(cbaths, function(x){read.table(file = x, header = TRUE, sep = ",")})
-cbathy <- do.call("rbind", lapply(cbathy, as.data.frame)) 
+cbathy <- as.data.frame(read.table(file = "data/spatial/rasters/large/tile2c.txt", 
+                                   header = T, sep = ",")) %>%
+  dplyr::filter(abs(X - 116.8337) == min(abs(X - 116.8337))) %>%
+  glimpse()
 
-test <- as.bathy(cbathy)
-plot.bathy(test)
+bath_cross <- st_as_sf(x = cbathy, coords = c("X", "Y"), crs = wgscrs)
 
-# test1 <- get.transect(test, loc = T, dis = T)
-test1 <- get.transect(test, x1 = 112.1075, x2 = 113.1075, y1 = -14.1075, y2 = -13.1-75, distance = T)
-marmap::plotProfile(test1)
+aus <- st_read("data/spatial/shapefiles/cstauscd_r.mif",
+               crs = wgscrs)
+aus <- aus[aus$FEAT_CODE %in% "mainland", ]
+aus <- st_union(aus)
+aus <- st_cast(aus, "MULTILINESTRING")
+plot(aus)
+dist <- st_distance(aus, bath_cross)
 
-head(test)
+p2 <- ggplot() +
+  geom_rect(aes(xmin = min(t1$dist.km), xmax = 5, ymin =-Inf, ymax = 0), fill = "#12a5db", alpha = 0.5) +
+  geom_line(data = t1, aes(y = depth, x = dist.km)) +
+  geom_ribbon(data = t1, aes(ymin = -Inf, ymax = depth, x = dist.km), fill = "tan") +
+  theme_classic() +
+  scale_x_continuous(expand = c(0,0)) +
+  # scale_y_continuous(breaks = c(150, 0, -150, -300, -450, -600),expand = c(0,0), limits = c(-700, 240)) +
+  labs(x = "Distance from coast (km)", y = "Elevation (m)") +
+  geom_segment(aes(x = -5.556, xend = -5.556, y =-44.03002, yend = 0), color = "red")
+p2
