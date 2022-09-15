@@ -46,17 +46,17 @@ damp_sanc <- damp_mp[damp_mp$ZoneName%in%"National Park Zone",]                 
 
 cwatr  <- st_read("data/spatial/shapefiles/amb_coastal_waters_limit.shp")       # Coastal waters limit
 
-bathy <- rast("data/spatial/rasters/large/tile2c.txt") # Old tile bathy
-crs(bathy) <- wgscrs
-
-damp_spat <- vect(damp_mp)
-# Crop to general project area
-bath_c <- crop(bathy, ext(116.5, 117.606993293854,
-                          -20.8, -20.2096723007877))                # Crop to general study area
-bath_c[bath_c > 0] <- NA
-plot(bath_c)
-plot(damp_mp, add = T)
-saveRDS(bath_c, file = "data/spatial/rasters/GA_250m_bathy-trimmed.RDS")
+# bathy <- rast("data/spatial/rasters/large/tile2c.txt") # Old tile bathy
+# crs(bathy) <- wgscrs
+# 
+# damp_spat <- vect(damp_mp)
+# bath_c <- crop(bathy, ext(116.5, 117.606993293854,
+#                           -20.8, -19))                # Crop to general study area
+# bath_c[bath_c > 0] <- NA
+# plot(bath_c)
+# plot(damp_mp, add = T)
+# bathdf <- as.data.frame(bath_c, xy = T)
+# saveRDS(bathdf, file = "data/spatial/rasters/GA_250m_bathy-trimmed.RDS")
 
 bathy <- readRDS("data/spatial/rasters/GA_250m_bathy-trimmed.RDS")
 bathy <- rast(bathy)
@@ -70,7 +70,7 @@ hill <- shade(slope, aspect, angle = 70, direction = 0)
 hill <- as.data.frame(hill, xy = T, na.rm = T)
 bathy <- as.data.frame(bathy, xy = T, na.rm = T)
 
-# colnames(bathy)[3] <- "Depth"
+colnames(bathy)[3] <- "Depth"
 
 # saveRDS(bathy, file = "data/spatial/rasters/GA_250m_bathy-trimmed.RDS")
 
@@ -79,7 +79,7 @@ p1 <- ggplot() +
   geom_tile(data = hill,aes(x = x, y = y, fill = lyr1), alpha = 1) +
   scale_fill_gradient(low = "white", high = "black", guide = "none") +
   new_scale_fill() +
-  geom_tile(data = bathy, aes(x = x, y = y, fill = Depth), alpha = 0.7) +
+  geom_tile(data = bathy%>%dplyr::filter(Depth > -40), aes(x = x, y = y, fill = Depth), alpha = 0.7) +
   scale_fill_viridis() +
   geom_contour(data = bathy, aes(x = x, y = y, z = Depth), breaks = c( -30, -70), 
                colour = "white", size = 0.1) +
@@ -93,6 +93,12 @@ p1 <- ggplot() +
            color = "white", size = 2) +
   coord_sf(xlim = c(116.8333, 117.5167), ylim = c(-20.56667, -20.3)) +
   labs(y = "Latitude", x = "Longitude")+
+  geom_segment(aes(x = 116.847, xend = 116.847, y = -20.5424, yend = -20.1), 
+               linetype = 2, alpha = 0.8, colour = "gray60") +
+  geom_segment(aes(x = 117.08, xend = 117.08, y = -20.67, yend = -20.1), 
+               linetype = 2, alpha = 0.8, colour = "gray60") +
+  geom_segment(aes(x = 117.3, xend = 117.3, y = -20.76, yend = -20.1), 
+               linetype = 2, alpha = 0.8, colour = "gray60") +
   theme_minimal()
 png(filename = "plots/exploratory-site-plot.png", height = 4, width = 10,
     res = 300, units = "in")
@@ -107,7 +113,7 @@ p1.5 <- ggplot() +
   new_scale_fill() +
   geom_tile(data = bathy, aes(x = x, y = y, fill = Depth), alpha = 0.7) +
   scale_fill_viridis() +
-  geom_contour(data = bathy, aes(x = x, y = y, z = Depth), breaks = c( -30, -70), 
+  geom_contour(data = bathy, aes(x = x, y = y, z = Depth), breaks = c( -30, -70, -200), 
                colour = "white", size = 0.1) +
   geom_sf(data = aus, fill = "seashell2", colour = "black", size = 0.1) +
   geom_sf(data = damp_mp, aes(color = ZoneName), fill = NA, size = 0.4) +
@@ -115,13 +121,13 @@ p1.5 <- ggplot() +
                                 "National Park Zone" = "#7bbc63",
                                 "Multiple Use Zone" = "#b9e6fb")) +
   geom_sf(data = cwatr, colour = "firebrick", alpha = 1, size = 0.4) +
-  annotate(geom = "text", x = 117.1, y = -20.385, label = "30m",
+  annotate(geom = "text", x = 117.1, y = c(-20.41, -19.75, -19.11), label = c("30m", "70m", "200m"),
            color = "white", size = 2) +
-  coord_sf(xlim = c(116.74, 117.5167), ylim = c(-20.75, -20.3)) +
-  labs(y = "Latitude", x = "Longitude")+
+  coord_sf(xlim = c(116.74, 117.5167), ylim = c(-20.75, -19)) +
+  labs(y = "Latitude", x = "Longitude") +
   theme_minimal()
-# png(filename = "plots/exploratory-site-plot.png", height = 4, width = 10,
-#     res = 300, units = "in")
+png(filename = "plots/exploratory-site-plot-zoomed.png", height = 8.5, width = 6,
+    res = 300, units = "in")
 p1.5
 dev.off()
 
@@ -194,8 +200,11 @@ p2
 # Through the npz
 cbathy <- as.data.frame(read.table(file = "data/spatial/rasters/large/tile2c.txt", 
                                    header = T, sep = ",")) %>%
-  dplyr::filter(abs(X - 117.07) == min(abs(X - 117.07))) %>%
+  dplyr::filter(abs(X - 117.08) == min(abs(X - 117.08))) %>%
   glimpse()
+
+ggplot() +
+  geom_line(data = cbathy%>%dplyr::filter(Y < -20), aes(x = Y, y = Z))
 
 bath_cross <- st_as_sf(x = cbathy, coords = c("X", "Y"), crs = wgscrs)
 
@@ -240,7 +249,7 @@ p3 <- ggplot() +
   scale_x_continuous(expand = c(0,0)) +
   # scale_y_continuous(breaks = c(150, 0, -150, -300, -450, -600),expand = c(0,0), limits = c(-700, 240)) +
   labs(x = "Distance from coast (km)", y = "Elevation (m)")  +
-  annotate("text", x = -20, y = 25, label = "Delambre \nIsland", size = 3) +
+  annotate("text", x = -20, y = 40, label = "Delambre \nIsland", size = 3) +
   geom_segment(data = paleo, aes(x = distance.from.coast, xend = distance.from.coast + 20, 
                                  y = depth, yend = depth), linetype = 2, alpha = 0.5) +
   geom_text(data = paleo, aes(x = distance.from.coast + 26, y = depth, label = label), size = 3)
