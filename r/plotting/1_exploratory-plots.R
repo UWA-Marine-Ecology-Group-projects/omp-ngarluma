@@ -94,11 +94,11 @@ p1 <- ggplot() +
   coord_sf(xlim = c(116.8333, 117.5167), ylim = c(-20.56667, -20.3)) +
   labs(y = "Latitude", x = "Longitude")+
   geom_segment(aes(x = 116.847, xend = 116.847, y = -20.5424, yend = -20.1), 
-               linetype = 2, alpha = 0.8, colour = "gray60") +
+               linetype = 2, alpha = 0.7, colour = "gray60", size = 1) +
   geom_segment(aes(x = 117.08, xend = 117.08, y = -20.67, yend = -20.1), 
-               linetype = 2, alpha = 0.8, colour = "gray60") +
+               linetype = 2, alpha = 0.7, colour = "gray60", size = 1) +
   geom_segment(aes(x = 117.3, xend = 117.3, y = -20.76, yend = -20.1), 
-               linetype = 2, alpha = 0.8, colour = "gray60") +
+               linetype = 2, alpha = 0.7, colour = "gray60", size = 1) +
   theme_minimal()
 png(filename = "plots/exploratory-site-plot.png", height = 4, width = 10,
     res = 300, units = "in")
@@ -190,11 +190,12 @@ p2 <- ggplot() +
   theme_classic() +
   scale_x_continuous(expand = c(0,0)) +
   labs(x = "Distance from coast (km)", y = "Elevation (m)") +
-  annotate("text", x = -18, y = 50, label = "Legendre \nIsland", size = 3) +
-  annotate("text", x = -25, y = 10, label = "Madeleine \nShoals", size = 3) +
+  annotate("text", x = -18, y = 60, label = "Legendre \nIsland", size = 3) +
+  annotate("text", x = -25, y = 20, label = "Madeleine \nShoals", size = 3) +
   geom_segment(data = paleo, aes(x = distance.from.coast, xend = distance.from.coast + 20, 
                                  y = depth, yend = depth), linetype = 2, alpha = 0.5) +
-  geom_text(data = paleo, aes(x = distance.from.coast + 26, y = depth, label = label), size = 3)
+  geom_text(data = paleo, aes(x = distance.from.coast + 26, y = depth, label = label), size = 3) +
+  annotate("segment", x = -21.69741, xend = -21.69741, y = -34, yend = 0, colour = "red", size = 1.2)
 p2
 
 # Through the npz
@@ -202,9 +203,6 @@ cbathy <- as.data.frame(read.table(file = "data/spatial/rasters/large/tile2c.txt
                                    header = T, sep = ",")) %>%
   dplyr::filter(abs(X - 117.08) == min(abs(X - 117.08))) %>%
   glimpse()
-
-ggplot() +
-  geom_line(data = cbathy%>%dplyr::filter(Y < -20), aes(x = Y, y = Z))
 
 bath_cross <- st_as_sf(x = cbathy, coords = c("X", "Y"), crs = wgscrs)
 
@@ -252,7 +250,11 @@ p3 <- ggplot() +
   annotate("text", x = -20, y = 40, label = "Delambre \nIsland", size = 3) +
   geom_segment(data = paleo, aes(x = distance.from.coast, xend = distance.from.coast + 20, 
                                  y = depth, yend = depth), linetype = 2, alpha = 0.5) +
-  geom_text(data = paleo, aes(x = distance.from.coast + 26, y = depth, label = label), size = 3)
+  geom_text(data = paleo, aes(x = distance.from.coast + 26, y = depth, label = label), size = 3) +
+  annotate("segment", x = -25.94324, xend = -25.94324, y = -31.5, yend = 0, colour = "red", size = 1.2) +
+  annotate("segment", x = -26.4, xend = -26.4, y = -31.5, yend = 0, colour = "#7bbc63", size = 1.2) +
+  annotate("segment", x = -35.1044, xend = -35.1044, y = -33, yend = 0, colour = "#7bbc63", size = 1.2) +
+  annotate("text", x = -31, y = 10, label = "NPZ", size = 3) 
 p3
 
 # Through the lumpy bits
@@ -307,7 +309,8 @@ p4 <- ggplot() +
   labs(x = "Distance from coast (km)", y = "Elevation (m)") +
   geom_segment(data = paleo, aes(x = distance.from.coast, xend = distance.from.coast + 20, 
                                  y = depth, yend = depth), linetype = 2, alpha = 0.5) +
-  geom_text(data = paleo, aes(x = distance.from.coast + 26, y = depth, label = label), size = 3)
+  geom_text(data = paleo, aes(x = distance.from.coast + 26, y = depth, label = label), size = 3) +
+  annotate("segment", x = -13.36314, xend = -13.36314, y = -12.5, yend = 0, colour = "red", size = 1.2)
 p4
 
 bath_plot <- p2 / p3 / p4 + plot_annotation(tag_levels = "a")
