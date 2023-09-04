@@ -1,4 +1,4 @@
-# Parks-murajuga
+# Parks-Ngarluma
 
 Dampier Archipelago
 
