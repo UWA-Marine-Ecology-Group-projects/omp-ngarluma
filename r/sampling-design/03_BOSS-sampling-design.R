@@ -1,7 +1,7 @@
 ###
 # Project: OMP Ngarluma
 # Data:    LiDAR Bathymetry data
-# Task:    Site selection for stereo-BRUVs
+# Task:    Site selection for drop camera
 # author:  Claude Spencer
 # date:    September 2023
 ##
@@ -23,7 +23,7 @@ library(tidyterra)
 library(viridis)
 
 # Set the seed for reproducible plans
-set.seed(15)
+set.seed(27)
 
 # Load marine parks ----
 aumpa <- st_read("data/spatial/shapefiles/AustraliaNetworkMarineParks.shp") %>%
@@ -76,7 +76,7 @@ inp_sf <- st_as_sf(inp_stars) %>%
   dplyr::summarise(geometry = st_union(geometry)) %>%
   ungroup() %>%
   dplyr::mutate(strata = paste("strata", row.names(.), sep = " "),
-                nsamps = round(n * incl_prob, digits = 0)) %>%
+                nsamps = round(n * split, digits = 0)) %>%
   st_make_valid() %>%
   glimpse()
 
@@ -90,8 +90,8 @@ base_samps <- data.frame(nsamps = inp_sf$nsamps,
 sample.design <- grts(inp_sf, 
                       n_base = base_samps, 
                       stratum_var = "strata", 
-                      DesignID = "DM-BV",  # Prefix for sample name                          
-                      mindis = 250)
+                      DesignID = "DM-DC",  # Prefix for sample name                          
+                      mindis = 50)
 
 ggplot() +
   geom_spatraster(data = inp_rasts, aes(fill = incl_prob )) +
@@ -104,5 +104,5 @@ samples <- sample.design$sites_base %>%
   dplyr::select(siteID, lon_WGS84, lat_WGS84, incl_prob) %>%
   glimpse()
 
-write.csv(samples, file = "output/sampling-design/bruv_sampling-design.csv",
+write.csv(samples, file = "output/sampling-design/boss_sampling-design.csv",
           row.names = F)
