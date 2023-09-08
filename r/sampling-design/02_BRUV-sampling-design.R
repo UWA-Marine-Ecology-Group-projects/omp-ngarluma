@@ -26,16 +26,23 @@ library(viridis)
 set.seed(15)
 
 # Load marine parks ----
-aumpa <- st_read("data/spatial/shapefiles/AustraliaNetworkMarineParks.shp") %>%
+aumpa_sf <- st_read("data/spatial/shapefiles/AustraliaNetworkMarineParks.shp") %>%
   dplyr::filter(ResName %in% "Dampier") %>%
-  vect() %>%
-  project("epsg:3112")
+  st_transform(3112)
+
+aumpa_vect <- aumpa_sf %>%
+  vect() 
 
 # Load the bathymetry data, reproject and mask ----
 preds <- readRDS("output/sampling-design/bathymetry-derivatives.rds") %>%
   project("epsg:3112") %>%
-  mask(aumpa)
+  mask(aumpa_sf)
 plot(preds)
+
+blank_raster <- rast(preds, nlyr = 0)
+zones <- rasterize(aumpa_vect, blank_raster, field = "n_samps") %>%
+  mask(preds[[1]])
+plot(zones)
 
 # Make inclusion probabilities ----
 # Using detrended bathymetry
