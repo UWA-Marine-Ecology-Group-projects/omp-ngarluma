@@ -2,8 +2,8 @@
 # Project: OMP Ngarluma
 # Data:    LiDAR Bathymetry data
 # Task:    Site selection for stereo-BRUVs
-# author:  Claude Spencer
-# date:    September 2023
+# Author:  Claude Spencer
+# Date:    September 2023
 ##
 
 # NOTES
@@ -127,6 +127,9 @@ ggplot() +
 # Select useful columns and export the design ----
 samples <- sample.design$sites_base %>%
   dplyr::select(siteID, lon_WGS84, lat_WGS84, ip) %>%
+  dplyr::mutate(ip = as.character(ip)) %>%
+  as.data.frame() %>%
+  dplyr::select(-geometry) %>%
   glimpse()
 
 write.csv(samples, file = "output/sampling-design/bruv_sampling-design.csv",
