@@ -1,3 +1,14 @@
+"TMQ CPlot Chart Type 2   ",      
+"Description: Dampier      ",      
+"Bounds: "20.18.0161S,116.53.8166E,20.27.2458S,117.14.7872E      ",      
+"Format: NM3      ",      
+"Rev. Date: 110819/160554     ",      
+"Scale: 1:00      ",      
+"Mag. Variation: 0     ",      
+"Cautions:       ",      
+"  "  ,      
+"<EOH>       "      
+      
 mark PXYCSLM 116.55.8482E 20.20.4775S Green Star DM-BV-01 0
 mark PXYCSLM 116.57.1719E 20.19.4905S Green Star DM-BV-02 0
 mark PXYCSLM 116.57.1297E 20.21.4142S Green Star DM-BV-03 0

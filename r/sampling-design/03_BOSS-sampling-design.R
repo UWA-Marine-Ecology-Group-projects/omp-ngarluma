@@ -112,7 +112,7 @@ base_samps <- data.frame(nsamps = inp_sf$nsamps,
 sample.design <- grts(inp_sf, 
                       n_base = base_samps, 
                       stratum_var = "strata", 
-                      DesignID = "DM-BV",  # Prefix for sample name                          
+                      DesignID = "DM-DC",  # Prefix for sample name                          
                       mindis = 50)
 
 # Have a look
