@@ -13,13 +13,13 @@ dem_cross_section <- function(xstart, xend, ystart, yend, maxdist) {
   st_crs(tran) <- 4326
   tranv <- vect(tran)
 
-  topo <- rast("data/south-west network/spatial/rasters/Australian_Bathymetry_and_Topography_2023_250m_MSL_cog.tif")
+  topo <- rast("data/spatial/rasters/Australian_Bathymetry_and_Topography_2023_250m_MSL_cog.tif")
   names(topo) <- "depth"
   batht <- terra::extract(topo, tranv, xy = T, ID = F)
 
   bath_cross <- st_as_sf(x = batht, coords = c("x", "y"), crs = 4326)
 
-  aus <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp") %>%
+  aus <- st_read("data/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp") %>%
     dplyr::filter(FEAT_CODE %in% "mainland") %>%
     st_transform(4326) %>%
     st_union()

@@ -1,6 +1,6 @@
 controldata_benthos <- function(year, amp_abbrv, state_abbrv) {
 
-  marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+  marine_parks <- st_read("data/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
     CheckEM::clean_names() %>%
     # dplyr::filter(name %in% c("Geographe", "Ngari Capes")) %>%
     dplyr::mutate(zone_new = case_when(
@@ -19,7 +19,7 @@ controldata_benthos <- function(year, amp_abbrv, state_abbrv) {
       str_detect(zone, "Reef Observation Area")  ~ paste(state_abbrv, "other zones")
     ))
 
-  preds <- readRDS(paste0("data/", park, "/spatial/rasters/",
+  preds <- readRDS(paste0("data/spatial/rasters/",
                           name, "_bathymetry-derivatives.rds")) %>%
     crop(dat)
   tempdat_v <- vect(as.data.frame(dat, xy = T), geom = c("x", "y"), crs = "epsg:4326")

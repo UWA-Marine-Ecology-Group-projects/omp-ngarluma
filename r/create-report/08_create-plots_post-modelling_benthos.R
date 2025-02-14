@@ -27,7 +27,7 @@ file.sources = list.files(pattern = "*.R", path = "functions/", full.names = T)
 sapply(file.sources, source, .GlobalEnv)
 
 # Read in the data
-dat <- readRDS(paste0("output/model-output/", park, "/habitat/", name, "_predicted-habitat.rds"))
+dat <- readRDS(paste0("output/habitat/", name, "_predicted-habitat.rds"))
 
 # Convert the data to a dataframe for some plotting
 pred_class <- as.data.frame(dat, xy = T) %>%
@@ -56,11 +56,11 @@ e <- ext(116.7, 117.7,-20.919, -20)
 
 # Load necessary spatial files
 # Australian outline and state and commonwealth marine parks
-aus    <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
+aus    <- st_read("data/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
 ausc <- st_crop(aus, e)
 
 # Australian outline and state and commonwealth marine parks
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+marine_parks <- st_read("data/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
   dplyr::filter(name %in% c("Dampier")) %>%
   arrange(zone) %>%
   glimpse()
@@ -90,7 +90,7 @@ dominantbenthos_plot(prediction_limits) +
     legend.margin = margin(t = -0.1, unit = "cm"
     ))
 # Save the plot
-ggsave(filename = paste0("plots/", park, "/habitat/", name, "_predicted-dominant-habitat.png"),
+ggsave(filename = paste0("plots/habitat/", name, "_predicted-dominant-habitat.png"),
        height = 6, width = 8, dpi = 600, units = "in", bg = "white")
 
 # Subset the spatraster data to remove reef and standard error
@@ -105,7 +105,7 @@ plot(pred_rast)
 individualbenthic_plot(prediction_limits)
 
 # Save the plot
-ggsave(filename = paste0("plots/", park, "/habitat/", name, "_predicted-individual-habitat.png"),
+ggsave(filename = paste0("plots/habitat/", name, "_predicted-individual-habitat.png"),
        height = 3, width = 8, dpi = 900, units = "in", bg = "white")
 
 # Subset the spatraster data to remove reef and standard error
@@ -120,7 +120,7 @@ plot(pred_rast)
 individualbenthic_plot(prediction_limits)
 
 # Save the plot
-ggsave(filename = paste0("plots/", park, "/habitat/", name, "_predicted-black-octocorals.png"),
+ggsave(filename = paste0("plots/habitat/", name, "_predicted-black-octocorals.png"),
        height = 4, width = 8, dpi = 900, units = "in", bg = "white")
 
 # Create the data (makes a dataframe for each ecosystem depth contour)
@@ -129,11 +129,11 @@ controldata_benthos(year = 2023, amp_abbrv = "DMP", state_abbrv = NA)
 # Create and save the plot (shallow)
 controlplot_benthos(data = park_dat.shallow, amp_abbrv = "DMP", state_abbrv = NA,
                     title = "Shallow (0 - 30 m)")
-ggsave(paste0("plots/", park, "/habitat/", name, "_shallow-control-plots.png"),
+ggsave(paste0("plots/habitat/", name, "_shallow-control-plots.png"),
        height = 6, width = 8, dpi = 300, units = "in")
 
 # Create and save the plot (mesophotic)
 controlplot_benthos(data = park_dat.meso, amp_abbrv = "DMP", state_abbrv = NA,
                     title = "Mesophotic (30 - 70 m)")
-ggsave(paste0("plots/", park, "/habitat/", name, "_mesophotic-control-plots.png"),
+ggsave(paste0("plots/habitat/", name, "_mesophotic-control-plots.png"),
        height = 6, width = 8, dpi = 300, units = "in")

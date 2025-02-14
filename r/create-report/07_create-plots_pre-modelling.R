@@ -358,7 +358,7 @@ label_offset <- segment_offset + 2 # Distance from end of segment to label
 # Create plot
 crosssection_plot(crosssection_labels, label_offset, segment_offset)
 # Save plot
-ggsave(filename = paste(paste0('plots/', park, '/spatial/', name) , 'bathymetry-cross-section.png',
+ggsave(filename = paste(paste0('plots/spatial/', name) , 'bathymetry-cross-section.png',
                         sep = "-"), units = "in", dpi = 600,
        bg = "white",
        width = 8, height = 4)
