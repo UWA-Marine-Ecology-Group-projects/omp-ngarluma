@@ -13,15 +13,15 @@ e <- ext(116.7, 117.7,-20.919, -20)
 # Load necessary spatial files
 sf_use_s2(T)
 # Australian outline and state and commonwealth marine parks
-aus    <- st_read("data/south-west network/spatial/shapefiles/STE_2021_AUST_GDA2020.shp") %>%
+aus    <- st_read("data/spatial/shapefiles/STE_2021_AUST_GDA2020.shp") %>%
   st_make_valid()
 ausc <- st_crop(aus, e)
 
 site_limits = c(116.779, 117.544, -20.738, -20.282) # For Dampier match it to the first plot
 
-aus_marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp")
+aus_marine_parks <- st_read("data/spatial/shapefiles/western-australia_marine-parks-all.shp")
 
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+marine_parks <- st_read("data/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
   dplyr::filter(name %in% c("Dampier")) %>%
   glimpse()
 
@@ -30,9 +30,9 @@ marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%
   arrange(zone)
 
-preds <- readRDS("data/dampier/spatial/rasters/DampierAMP_bathymetry-derivatives.rds")
+preds <- readRDS("data/spatial/rasters/DampierAMP_bathymetry-derivatives.rds")
 
-mb <- rast("data/dampier/spatial/rasters/North_West_Shelf_DEM_v2_Bathymetry_2020_30m_MSL_cog.tif") %>%
+mb <- rast("data/spatial/rasters/North_West_Shelf_DEM_v2_Bathymetry_2020_30m_MSL_cog.tif") %>%
   project("epsg:4326") %>%
   crop(e) %>%
   clamp(upper = 0, values = F)
@@ -100,13 +100,13 @@ detrended <- ggplot() +
   theme(panel.grid = element_blank())
 
 detrended
-ggsave("plots/dampier/spatial/DampierAMP_detrended.png",
+ggsave("plots/spatial/DampierAMP_detrended.png",
        height = 6, width = 11, dpi = 300, bg = "white")
 
 # Combine plots
 (depth + aspect)/(roughness + plot_spacer())
 
-ggsave("plots/dampier/spatial/DampierAMP_bathymetry-derivatives.png",
+ggsave("plots/spatial/DampierAMP_bathymetry-derivatives.png",
        height = 6, width = 11, dpi = 300, bg = "white")
 
 depth <- ggplot() +
@@ -141,5 +141,5 @@ mb_depth <- ggplot() +
 
 depth / mb_depth + plot_annotation(tag_levels = "a") &
   theme(legend.justification = "left")
-ggsave("plots/dampier/spatial/DampierAMP_multibeam-comparison.png",
+ggsave("plots/spatial/DampierAMP_multibeam-comparison.png",
        height = 6, width = 6, dpi = 300, bg = "white")

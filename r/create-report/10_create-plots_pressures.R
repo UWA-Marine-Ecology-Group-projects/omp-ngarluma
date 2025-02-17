@@ -18,12 +18,12 @@ park <- "dampier"
 e <- ext(116.7, 117.7,-20.919, -20)
 
 # Read in shapefile data for maps
-aus <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
+aus <- st_read("data/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
 ausc <- st_crop(aus, e)
 
 # Spatial plots
 ## SST
-sst <- rast(paste0("data/", park, "/spatial/oceanography/", name, "_SST_raster.rds")) %>%
+sst <- rast(paste0("data/spatial/oceanography/", name, "_SST_raster.rds")) %>%
   subset(names(.) %in% c("Jan", "Mar", "May", "Jul", "Sep", "Nov"))
 names(sst)
 sst <- sst[[c("Jan", "Mar", "May", "Jul", "Sep", "Nov")]]
@@ -45,28 +45,28 @@ plot_sst(prediction_limits) +
 #   coord_sf(xlim = c(115.0526, 115.5551),
 #            ylim = c(-33.65736, -33.35236),
 #            crs = 4326)
-ggsave(paste0("plots/", park, "/spatial/", name, "_SST.png"),
+ggsave(paste0("plots/spatial/", name, "_SST.png"),
        height = 3.8, width = 8, dpi = 600, bg = "white", units = "in")
 
 ## SLA
-sla <- rast(paste0("data/", park, "/spatial/oceanography/", name, "_SLA_raster.rds")) %>%
+sla <- rast(paste0("data/spatial/oceanography/", name, "_SLA_raster.rds")) %>%
   subset(names(.) %in% c("Jan", "Mar", "May", "Jul", "Sep", "Nov"))
 names(sla)
 
 plot_sla(prediction_limits) +
   theme(axis.text = element_text(size = 6))
 
-ggsave(paste0("plots/", park, "/spatial/", name, "_SLA.png"),
+ggsave(paste0("plots/spatial/", name, "_SLA.png"),
        height = 3.8, width = 8, dpi = 600, bg = "white", units = "in")
 
 ## DHW
-dhw <- rast(paste0("data/", park, "/spatial/oceanography/", name, "_DHW_raster.rds"))
+dhw <- rast(paste0("data/spatial/oceanography/", name, "_DHW_raster.rds"))
 names(dhw)
 
 plot_dhw(prediction_limits) +
   theme(axis.text = element_text(size = 6))
 
-ggsave(paste0("plots/", park, "/spatial/", name, "_DHW.png"),
+ggsave(paste0("plots/spatial/", name, "_DHW.png"),
        height = 2.7, width = 8, dpi = 600, bg = "white", units = "in")
 
 pressure_data()
@@ -74,7 +74,7 @@ pressure_data()
 maxyear = c(2013, 2022)
 pressure_plot(maxyear)
 
-ggsave(filename = paste0('plots/', park, '/spatial/', name, '_oceanography_time-series.png'),
+ggsave(filename = paste0('plots/spatial/', name, '_oceanography_time-series.png'),
        dpi = 300, units = "in", bg = "white",
        width = 6, height = 6.75)
 

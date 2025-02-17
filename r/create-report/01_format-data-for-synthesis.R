@@ -1,14 +1,23 @@
-# Script to format raw EM and TM exports into GA synthesis format
+###
+# Project: Parks Australia - Our Marine Parks Ngarluma
+# Data:    Raw fish and benthos annotations
+# Task:    Format annotations to match the format returned from GlobalArchive synthesis API
+# Author:  Claude Spencer
+# Date:    June 2024
+###
+
+# Clear the environment
 rm(list = ls())
 
+# Set the study name
 name = "dampierAMP"
 
+# Load libraries
 library(tidyverse)
 library(CheckEM)
 
-# BRUV synthesis
-
-## Metadata
+## BRUV synthesis
+# Load and format metadata
 metadata <- read_metadata("data/dampier/raw/temp/BRUVs", method = "BRUVs") %>%
   clean_names() %>%
   dplyr::select(campaignid, opcode, longitude_dd, latitude_dd, date_time, depth_m, status, site, location, successful_count, successful_length,
@@ -18,9 +27,10 @@ metadata <- read_metadata("data/dampier/raw/temp/BRUVs", method = "BRUVs") %>%
                 latitude_dd = as.numeric(latitude_dd)) %>%
   glimpse()
 
+# Save metadata
 saveRDS(metadata, file = paste0("data/dampier/raw/", name, "_BRUVs_metadata.RDS"))
 
-## Count
+# Load and format count data
 count <- read_points("data/dampier/raw/temp/BRUVs", method = "BRUVs") %>%
   clean_names() %>%
   right_join(metadata) %>% # Join back samples with no fish
@@ -41,9 +51,10 @@ count <- read_points("data/dampier/raw/temp/BRUVs", method = "BRUVs") %>%
   dplyr::filter(successful_count %in% "Yes") %>%
   glimpse()
 
+# Save count data
 saveRDS(count, file = paste0("data/dampier/raw/", name, "_BRUVs_complete_count.RDS"))
 
-## Length
+# Load and format length data
 length <- read_em_length("data/dampier/raw/temp/BRUVs") %>%
   clean_names() %>%
   right_join(metadata) %>%
@@ -59,9 +70,10 @@ length <- read_em_length("data/dampier/raw/temp/BRUVs") %>%
   dplyr::filter(successful_length %in% "Yes") %>%
   glimpse()
 
+# Save length data
 saveRDS(length, file = paste0("data/dampier/raw/", name, "_BRUVs_complete_length.RDS"))
 
-## Benthos
+# Load and format benthos data
 benthos <- read_TM("data/dampier/raw/temp/BRUVs", sample = "opcode") %>%
   dplyr::filter(relief_annotated %in% "no") %>%
   dplyr::select(campaignid, sample, level_2, level_3, scientific) %>%
@@ -76,7 +88,7 @@ benthos <- read_TM("data/dampier/raw/temp/BRUVs", sample = "opcode") %>%
 
 saveRDS(benthos, file = paste0("data/dampier/raw/", name, "_BRUVs_benthos.RDS"))
 
-## Benthos relief
+# Load and format relief data
 relief <- read_TM("data/dampier/raw/temp/BRUVs", sample = "opcode") %>%
   dplyr::mutate(campaignid = "2023-09_Dampier_stereo-BRUVs") %>% # REMOVE - data needs fixing
   dplyr::filter(relief_annotated %in% c("yes", "Yes"),
@@ -91,11 +103,11 @@ relief <- read_TM("data/dampier/raw/temp/BRUVs", sample = "opcode") %>%
   left_join(metadata) %>%
   glimpse()
 
+# Save relief data
 saveRDS(relief, file = paste0("data/dampier/raw/", name, "_BRUVs_relief.RDS"))
 
-# BOSS synthesis
-
-## Metadata
+## BOSS synthesis
+# Load and format metadata
 metadata <- read_metadata("data/dampier/raw/temp/BOSS", method = "BOSS") %>%
   clean_names() %>%
   dplyr::select(campaignid, period, longitude_dd, latitude_dd, date_time, depth_m, status, site, location, successful_count, successful_length,
@@ -105,9 +117,10 @@ metadata <- read_metadata("data/dampier/raw/temp/BOSS", method = "BOSS") %>%
                 latitude_dd = as.numeric(latitude_dd)) %>%
   glimpse()
 
+# Save metadata
 saveRDS(metadata, file = paste0("data/dampier/raw/", name, "_BOSS_metadata.RDS"))
 
-## Benthos
+# Load and format benthos data
 benthos <- read_TM("data/dampier/raw/temp/BOSS", sample = "opcode") %>%
   dplyr::filter(relief_annotated %in% "no") %>%
   dplyr::select(campaignid, sample, level_2, level_3, scientific) %>%
@@ -120,9 +133,10 @@ benthos <- read_TM("data/dampier/raw/temp/BOSS", sample = "opcode") %>%
   left_join(metadata) %>%
   glimpse()
 
+# Save benthos data
 saveRDS(benthos, file = paste0("data/dampier/raw/", name, "_BOSS_benthos.RDS"))
 
-## Benthos relief
+# Load and format relief data
 relief <- read_TM("data/dampier/raw/temp/BOSS", sample = "opcode") %>%
   dplyr::filter(relief_annotated %in% "yes") %>%
   dplyr::select(campaignid, sample, level_5) %>%
@@ -135,4 +149,5 @@ relief <- read_TM("data/dampier/raw/temp/BOSS", sample = "opcode") %>%
   left_join(metadata) %>%
   glimpse()
 
+# Save relief data
 saveRDS(relief, file = paste0("data/dampier/raw/", name, "_BOSS_relief.RDS"))

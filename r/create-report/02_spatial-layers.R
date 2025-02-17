@@ -1,5 +1,5 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
+# Project: Parks Australia - Our Marine Parks Ngarluma
 # Data:    Spatial covariates
 # Task:    Format spatial covariates, extract covariates for each sampling location
 # Author:  Claude Spencer
@@ -11,7 +11,6 @@ rm(list = ls())
 
 # Set the study name
 name <- "DampierAMP"
-park <- "dampier"
 
 # Load libraries
 library(sf)
@@ -60,12 +59,6 @@ saveRDS(preds, file = paste0("data/spatial/rasters/",
 
 # Read in the metadata
 
-# metadata <- readRDS(paste0("data/tidy/",
-#                            name, "_metadata.rds")) %>%
-#   dplyr::mutate(longitude_dd = as.numeric(longitude_dd),
-#                 latitude_dd = as.numeric(latitude_dd)) %>%
-#   glimpse()
-
 metadatabruv <- readRDS(paste0("data/staging/", name, "_BRUVs_metadata.RDS")) %>%
   dplyr::select(campaignid, opcode, longitude_dd, latitude_dd, status) %>%
   dplyr::rename(sample = opcode) %>%
@@ -94,60 +87,60 @@ metadata.bathy.derivatives   <- cbind(metadata,
 # Save the metadata bathymetry derivatives
 saveRDS(metadata.bathy.derivatives, paste0("data/tidy/", name, "_metadata-bathymetry-derivatives.rds"))
 
-# This stuff below has not been included in the report
-
 # Oceanography/Pressures
 # Sea surface temperature
-# nc_sst <- open.nc(paste0("data/", park, "/spatial/oceanography/SST.nc"), write = TRUE)
-# print.nc(nc_sst) # shows you all the file details
-# time_nc <- var.get.nc(nc_sst, 'time')  # NC_CHAR time:units = "days since 1981-01-01 00:00:00" ;
-# time_nc_sst <- utcal.nc("seconds since 1981-01-01 00:00:00", time_nc, type = "c")
-# dates_sst <- as.Date(time_nc_sst)
-# close.nc(nc_sst) # GDAL errors otherwise
-# 
-# rast_sst <- rast(paste0("data/", park, "/spatial/oceanography/SST.nc"),
-#                  subds = "sea_surface_temperature") %>%
-#   crop(e) %>%
-#   trim()
-# plot(rast_sst)
-# names(rast_sst) <- dates_sst
-# time(rast_sst) <- dates_sst
-# 
-# winter_sst_ts <- rast_sst[[names(rast_sst)[str_detect(names(rast_sst), "-06-|-07-|-08-")]]]
-# 
-# for (month in unique(month(time(rast_sst)))) {
-#   print(month)
-#   monthly_rast <- subset(rast_sst, month(time(rast_sst)) == month) %>%
-#     mean(na.rm = T) %>%
-#     app(fun = function(i) {i - 273.15})
-#   names(monthly_rast) <- month.abb[month]
-#   if (month == 3) {
-#     sst <- monthly_rast
-#   }
-#   else {
-#     sst <- rast(list(sst, monthly_rast))
-#   }
-# }
-# 
-# saveRDS(sst, paste0("data/", park, "/spatial/oceanography/", name, "_SST_raster.rds"))
-# 
-# sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = T) %>%
-#   tibble::rownames_to_column() %>%
-#   cbind(terra::global(rast_sst, fun = "sd", na.rm = T)) %>%
-#   # dplyr::mutate(temp = mean - 273.15, # Convert kelvin to celsius
-#   #               date = date(rowname)) %>%
-#   tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
-#   dplyr::group_by(year, month) %>%
-#   summarise(sst = mean(mean, na.rm = T) - 273.15, # Convert kelvin to celsius
-#             sd = mean(sd, na.rm = T)) %>%
-#   ungroup() %>%
-#   dplyr::mutate(season = case_when(month %in% c("03", "04", "05") ~ "Autumn",
-#                                    month %in% c("06", "07", "08") ~ "Winter",
-#                                    month %in% c("09", "10", "11") ~ "Spring",
-#                                    month %in% c("12", "01", "02") ~ "Summer")) %>%
-#   glimpse()
-# 
-# saveRDS(sst_tsdf, paste0("data/", park, "/spatial/oceanography/", name, "_SST_time-series.rds"))
+nc_sst <- open.nc(paste0("data/spatial/oceanography/SST.nc"), write = TRUE)
+print.nc(nc_sst) # shows you all the file details
+time_nc <- var.get.nc(nc_sst, 'time')  # NC_CHAR time:units = "days since 1981-01-01 00:00:00" ;
+time_nc_sst <- utcal.nc("seconds since 1981-01-01 00:00:00", time_nc, type = "c")
+dates_sst <- as.Date(time_nc_sst)
+close.nc(nc_sst) # GDAL errors otherwise
+
+rast_sst <- rast(paste0("data/spatial/oceanography/SST.nc"),
+                 subds = "sea_surface_temperature") %>%
+  crop(e) %>%
+  trim()
+plot(rast_sst)
+names(rast_sst) <- dates_sst
+time(rast_sst) <- dates_sst
+
+winter_sst_ts <- rast_sst[[names(rast_sst)[str_detect(names(rast_sst), "-06-|-07-|-08-")]]]
+
+for (month in unique(month(time(rast_sst)))) {
+  print(month)
+  monthly_rast <- subset(rast_sst, month(time(rast_sst)) == month) %>%
+    mean(na.rm = T) %>%
+    app(fun = function(i) {i - 273.15})
+  names(monthly_rast) <- month.abb[month]
+  if (month == 3) {
+    sst <- monthly_rast
+  }
+  else {
+    sst <- rast(list(sst, monthly_rast))
+  }
+}
+
+saveRDS(sst, paste0("data/spatial/oceanography/", name, "_SST_raster.rds"))
+
+sst_tsdf <- terra::global(rast_sst, fun = "mean", na.rm = T) %>%
+  tibble::rownames_to_column() %>%
+  cbind(terra::global(rast_sst, fun = "sd", na.rm = T)) %>%
+  # dplyr::mutate(temp = mean - 273.15, # Convert kelvin to celsius
+  #               date = date(rowname)) %>%
+  tidyr::separate(rowname, into = c("year", "month", "day"), sep = "-") %>%
+  dplyr::group_by(year, month) %>%
+  summarise(sst = mean(mean, na.rm = T) - 273.15, # Convert kelvin to celsius
+            sd = mean(sd, na.rm = T)) %>%
+  ungroup() %>%
+  dplyr::mutate(season = case_when(month %in% c("03", "04", "05") ~ "Autumn",
+                                   month %in% c("06", "07", "08") ~ "Winter",
+                                   month %in% c("09", "10", "11") ~ "Spring",
+                                   month %in% c("12", "01", "02") ~ "Summer")) %>%
+  glimpse()
+
+saveRDS(sst_tsdf, paste0("data/spatial/oceanography/", name, "_SST_time-series.rds"))
+
+# This stuff below has not been included in the report
 # 
 # # Sea Level Anomaly
 # nc_sla <- open.nc(paste0("data/", park, "/spatial/oceanography/SLA.nc"),

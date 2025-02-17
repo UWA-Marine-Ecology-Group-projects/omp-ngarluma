@@ -1,13 +1,15 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
-# Data:    Habitat data synthesis
+# Project: Parks Australia - Our Marine Parks Ngarluma
+# Data:    Benthos synthesis data
 # Task:    Model habitat data using the full subsets approach from @beckyfisher/FSSgam
 # Author:  Claude Spencer
 # Date:    June 2024
 ###
 
-rm(list=ls())
+# Clear the environment
+rm(list = ls())
 
+# Load necessary libraries
 library(CheckEM)
 library(tidyverse)
 library(mgcv)
@@ -19,67 +21,33 @@ library(doParallel)
 
 # Set the study name
 name <- "DampierAMP"
-park <- "dampier"
 
+# Load joined metadata and bathymetry derivatives
 metadata_bathy_derivatives <- readRDS(paste0("data/tidy/", name, "_metadata-bathymetry-derivatives.rds")) %>%
   clean_names() %>%
   glimpse()
 
-# Bring in and format the data----
-
+# Bring in and format the benthic data 
 habi <- readRDS(paste0("data/tidy/", name, "_benthos-count.RDS")) %>%
   left_join(metadata_bathy_derivatives) %>%
   dplyr::filter(!is.na(latitude_dd)) %>% # Check this
   dplyr::select(-sessile_invertebrates) %>%
   glimpse()
 
-# benthosboss <- readRDS(paste0("data/", park, "/raw/", name, "_BOSS_benthos.RDS")) %>%
-#   dplyr::rename(sample = period)
-# benthosbruv <- readRDS(paste0("data/", park, "/raw/", name, "_BRUVs_benthos.RDS")) %>%
-#   dplyr::rename(sample = opcode)
-#
-# habi <- bind_rows(benthosboss, benthosbruv) %>%
-#   dplyr::select(campaignid, sample, level_2, level_3, count) %>%
-#   dplyr::mutate(habitat = case_when(level_2 %in% "Substrate" ~ level_3,
-#                                     level_2 %in% "Sessile invertebrates" ~ level_2,
-#                                     level_2 %in% "Sponges" ~ level_2,
-#                                     level_3 %in% "Corals" ~ "Black & Octocorals",
-#                                     level_2 %in% "Macroalgae" ~ level_2,
-#                                     level_3 %in% "Hydroids" ~ level_3,
-#                                     level_3 %in% "True anemones" ~ "Sessile invertebrates",
-#                                     level_3 %in% "Hydrocorals" ~ "Sessile invertebrates")) %>%
-#   dplyr::group_by(campaignid, sample) %>%
-#   dplyr::mutate(total_pts = sum(count)) %>%
-#   ungroup() %>%
-#   pivot_wider(names_from = habitat, values_from = count, values_fill = 0) %>%
-#   left_join(metadata_bathy_derivatives) %>%
-#   clean_names() %>%
-#   dplyr::mutate(sessile_invertebrates = black_octocorals + sessile_invertebrates +
-#                   sponges + hydroids,
-#                 reef = sessile_invertebrates + macroalgae + consolidated_hard) %>%
-#   dplyr::rename(sand = unconsolidated_soft, rock = consolidated_hard) %>%
-#   dplyr::filter(!is.na(longitude_dd)) %>%
-#   # dplyr::mutate(total_pts = sand + sessile_invertebrates + rock + macroalgae) %>%
-#   glimpse()
-
-# model_dat <- habi %>%
-#   pivot_longer(cols = c(macroalgae, sand, rock, sessile_invertebrates_all, reef),
-#                names_to = "response", values_to = "number")
-
 model_dat <- habi %>%
   pivot_longer(cols = c(macroalgae, sand, rock, black_octocorals, sessile_invertebrates_all, reef),
                names_to = "response", values_to = "number")
 
-# Set predictor variables---
+# Set predictor variables
 pred.vars <- c("geoscience_depth", "geoscience_aspect", "geoscience_roughness", "geoscience_detrended")
 
-# Check for correlation of predictor variables- remove anything highly correlated (>0.95)---
+# Check for correlation of predictor variables- remove anything highly correlated (>0.95)
 round(cor(model_dat[ , pred.vars]), 2) # Roughness and depth 0.35 correlated
 
-# Review of individual predictors for even distribution---
+# Review of individual predictors for even distribution
 CheckEM::plot_transformations(pred.vars = pred.vars, dat = model_dat)
 
-# Check to make sure Response vector has not more than 80% zeros----
+# Check to make sure the response vector has less than 80% zeros
 unique.vars = unique(as.character(model_dat$response))
 
 unique.vars.use = character()
@@ -91,14 +59,14 @@ for(i in 1:length(unique.vars)){
 
 unique.vars.use                                                                 # Not enough macroalgae or rock to model
 
-# Run the full subset model selection----
+# Run the full subset model selection
 outdir    <- paste0("output/habitat/")
 use.dat   <- model_dat[model_dat$response %in% c(unique.vars.use), ]
 out.all   <- list()
 var.imp   <- list()
 resp.vars <- unique.vars.use
 
-# Loop through the FSS function for each Abiotic taxa----
+# Loop through the FSS function for each benthic class
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat <- model_dat[model_dat$response == resp.vars[i],]
@@ -128,8 +96,6 @@ for(i in 1:length(resp.vars)){
   out.all   <- c(out.all, list(out.i))
   var.imp   <- c(var.imp, list(out.list$variable.importance$aic$variable.weights.raw))
 
-
-
   # plot the best models
   for(m in 1:nrow(out.i)){
     best.model.name <- as.character(out.i$modname[m])
@@ -144,7 +110,7 @@ for(i in 1:length(resp.vars)){
   }
 }
 
-# Model fits and importance---
+# Save model fits and importance
 names(out.all) <- resp.vars
 names(var.imp) <- resp.vars
 all.mod.fits <- list_rbind(out.all, names_to = "response")
@@ -152,6 +118,7 @@ all.var.imp  <- do.call("rbind", var.imp)
 write.csv(all.mod.fits[ , -2], file = paste0(outdir, name, "_all.mod.fits.csv"))
 write.csv(all.var.imp,         file = paste0(outdir, name, "_all.var.imp.csv"))
 
+# Manually set the top models for each modeled class
 # Sand
 m_sand <- gam(cbind(sand, total_pts - sand) ~
                 s(geoscience_aspect,     k = 5, bs = "cc")  +
@@ -241,6 +208,7 @@ for(i in 1:length(resp.vars)) {
   }
 }
 
+# Create a 10km site buffer to maks predictions
 sites <- st_as_sf(habi, coords = c("longitude_dd", "latitude_dd"), crs = 4326) %>%
   st_transform(9473) %>%
   st_union()
@@ -250,10 +218,12 @@ buffer <- sites %>%
   st_transform(4326) %>%
   vect()
 
+# Load shipping channel data to mask out
 remove <- st_read("data/spatial/shapefiles/remove-shipping-channel.shp")
 channel <- st_read("data/spatial/shapefiles/port-walcott_shipping-channel.shp")
 spoil   <- st_read("data/spatial/shapefiles/port-walcott_spoil-grounds.shp")
 
+# Remove from predictions
 predhab <- preddf_m %>%
   mask(buffer) %>%
   mask(remove, inverse = T) %>%
@@ -261,6 +231,7 @@ predhab <- preddf_m %>%
   trim()
 plot(predhab)
 
+# Save out as RDS and tiff
 saveRDS(predhab, paste0("output/habitat/", name, "_predicted-habitat.rds"))      # Ignored
 
 writeRaster(predhab, paste0("output/habitat/", names(predhab), "_predicted.tif"),

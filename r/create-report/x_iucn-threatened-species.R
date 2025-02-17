@@ -4,9 +4,8 @@ library(CheckEM)
 library(tidyverse)
 
 name <- "DampierAMP"
-park <- "dampier"
 
-dat <- readRDS("data/dampier/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
+dat <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   dplyr::filter(count > 0) %>%
   distinct(family, genus, species) %>%
   left_join(CheckEM::australia_life_history) %>%
@@ -17,15 +16,15 @@ dat <- readRDS("data/dampier/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   arrange(scientific_name) %>%
   glimpse()
 
-write.csv(dat, file = paste0("data/", park, "/tidy/", name, "_threatened-species.csv"),
+write.csv(dat, file = paste0("data/tidy/", name, "_threatened-species.csv"),
           row.names = F)
 
-num.spp <- readRDS("data/dampier/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
+num.spp <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   dplyr::filter(count > 0) %>%
   distinct(scientific) %>%
   glimpse()
 
-num.all <- readRDS("data/dampier/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
+num.all <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   dplyr::filter(count > 0) %>%
   summarise(count = sum(count)) %>%
   glimpse()
@@ -33,7 +32,7 @@ num.all <- readRDS("data/dampier/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
 # Try and make a spatial plot of the endangered species
 # speclist <- unique(dat$scientific_name)
 
-dat_threat <- readRDS("data/dampier/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
+dat_threat <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   # left_join(CheckEM::australia_life_history) %>%
   # dplyr::mutate(scientific_name = paste(genus, species, sep = " ")) %>%
   dplyr::filter(species %in% c("apraefrontalis", "foliosquama", "mokarran")) %>%
@@ -44,7 +43,7 @@ dat_threat <- readRDS("data/dampier/raw/dampierAMP_BRUVs_complete_count.RDS") %>
 
 e <- ext(116.7, 117.7,-20.919, -20)
 
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+marine_parks <- st_read("data/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
   dplyr::filter(name %in% c("Dampier")) %>%
   arrange(zone) %>%
   glimpse()
@@ -56,11 +55,11 @@ marine_parks_state <- marine_parks %>%
   dplyr::filter(epbc %in% "State")
 
 # Australian outline and state and commonwealth marine parks
-aus    <- st_read("data/south-west network/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
+aus    <- st_read("data/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
 ausc <- st_crop(aus, e)
 
 # Terrestrial parks
-terrnp <- st_read("data/south-west network/spatial/shapefiles/Legislated_Lands_and_Waters_DBCA_011.shp") %>%  # Terrestrial reserves
+terrnp <- st_read("data/spatial/shapefiles/Legislated_Lands_and_Waters_DBCA_011.shp") %>%  # Terrestrial reserves
   dplyr::filter(leg_catego %in% c("Nature Reserve", "National Park"))
 plot(terrnp["leg_catego"])
 
@@ -70,7 +69,7 @@ terr_fills <- scale_fill_manual(values = c("National Park" = "#c4cea6",         
 
 site_limits = c(116.779, 117.544, -20.738, -20.282) # For Dampier match it to the first plot
 
-bathy <- rast("data/south-west network/spatial/rasters/Australian_Bathymetry_and_Topography_2023_250m_MSL_cog.tif") %>%
+bathy <- rast("data/spatial/rasters/Australian_Bathymetry_and_Topography_2023_250m_MSL_cog.tif") %>%
   crop(e) %>%
   clamp(upper = 0, values = F)
 names(bathy) <- "Depth"

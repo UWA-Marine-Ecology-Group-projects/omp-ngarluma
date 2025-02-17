@@ -1,5 +1,5 @@
 pressure_data <- function() {
-  acid_ts <- readRDS(paste0("data/", park, "/spatial/oceanography/",
+  acid_ts <- readRDS(paste0("data/spatial/oceanography/",
                             name, "_Acidification_time-series.rds")) %>%
     dplyr::mutate(year = as.numeric(year)) %>%
     dplyr::filter(!year %in% c("1870", "2013")) %>% # These 2 years have inaccurate averages as they are only on 6 months
@@ -9,7 +9,7 @@ pressure_data <- function() {
     glimpse()
   assign("acid_ts", acid_ts, envir = .GlobalEnv)
 
-  sla_ts <- readRDS(paste0("data/", park, "/spatial/oceanography/",
+  sla_ts <- readRDS(paste0("data/spatial/oceanography/",
                            name, "_SLA_time-series.rds")) %>%
     dplyr::mutate(year = as.numeric(year)) %>%
     dplyr::filter(season %in% c("Summer", "Winter")) %>%
@@ -19,7 +19,7 @@ pressure_data <- function() {
     glimpse()
   assign("sla_ts", sla_ts, envir = .GlobalEnv)
 
-  sst_ts <- readRDS(paste0("data/", park, "/spatial/oceanography/",
+  sst_ts <- readRDS(paste0("data/spatial/oceanography/",
                            name, "_SST_time-series.rds")) %>%
     dplyr::mutate(year = as.numeric(year)) %>%
     dplyr::filter(season %in% c("Summer", "Winter")) %>%
@@ -29,7 +29,7 @@ pressure_data <- function() {
     glimpse()
   assign("sst_ts", sst_ts, envir = .GlobalEnv)
 
-  dhw_ts <- readRDS(paste0("data/", park, "/spatial/oceanography/",
+  dhw_ts <- readRDS(paste0("data/spatial/oceanography/",
                            name, "_DHW_time-series.rds")) %>%
     dplyr::mutate(year = as.numeric(year)) %>%
     dplyr::group_by(year) %>%

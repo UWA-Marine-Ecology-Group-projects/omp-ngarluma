@@ -13,7 +13,7 @@ average_depth <- tidy_maxn %>%
   dplyr::mutate(depth_m = as.numeric(depth_m)) %>%
   summarise(depth = mean(depth_m, na.rm = T))
 
-tidy_length <- readRDS(paste0("data/", park, "/tidy/", name, "_tidy-length.rds")) %>%
+tidy_length <- readRDS(paste0("data/tidy/", name, "_tidy-length.rds")) %>%
   glimpse()
 
 fish_per_bruv <- tidy_maxn %>%
@@ -37,13 +37,13 @@ smollm_per_bruv <- tidy_length %>%
   glimpse()
 
 # Compare to ningaloo
-count <- read.csv("data/dampier/raw/Parks-Ningaloo-synthesis.complete.maxn.csv") %>%
+count <- read.csv("data/raw/Parks-Ningaloo-synthesis.complete.maxn.csv") %>%
   dplyr::rename(count = maxn) %>%
   dplyr::select(campaignid, sample, family, genus, species, count) %>%
   dplyr::mutate(scientific_name = paste(family, genus, species, sep = " ")) %>%
   glimpse()
 
-average_depth <- read.csv("data/dampier/raw/Parks-Ningaloo-synthesis.complete.maxn.csv") %>%
+average_depth <- read.csv("data/raw/Parks-Ningaloo-synthesis.complete.maxn.csv") %>%
   dplyr::filter(!depth %in% "?") %>%
   dplyr::mutate(depth = as.numeric(depth)) %>%
   summarise(depth = mean(depth, na.rm = T)) %>%

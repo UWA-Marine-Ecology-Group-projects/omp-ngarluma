@@ -1,7 +1,7 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
+# Project: Parks Australia - Our Marine Parks Ngarluma
 # Data:    Fish data synthesis
-# Task:    Combine and format fish data for full subsets modelling
+# Task:    Create benthic metrics for modelling
 # Author:  Claude Spencer
 # Date:    June 2024
 ###
@@ -22,26 +22,27 @@ library(plotly)
 
 # Set the study name
 name <- "DampierAMP"
-park <- "dampier"
 
+# Load joined metadata and bathymetry derivatives
 metadata_bathy_derivatives <- readRDS(paste0("data/tidy/", name, "_metadata-bathymetry-derivatives.rds")) %>%
   clean_names() %>%
   glimpse()
 
+# Load BRUV metadata
 metadata <- readRDS(paste0("data/staging/", name, "_BRUVs_metadata.RDS")) %>%
   dplyr::rename(sample = opcode) %>%
   glimpse()
 
-# This is formatted habitat from 03_create-metrics_habitat
+# Load formatted benthic data from 03_create-metrics_habitat
 benthos <- readRDS(paste0("data/tidy/", name, "_benthos-count.RDS")) %>%
   CheckEM::clean_names() %>%
   dplyr::select(campaignid, sample, reef, total_pts) %>%
   dplyr::mutate(reef = reef/total_pts) %>% # Model reef as proportion for fish prediction
   glimpse()
 
-# Maturity data from WA sheet - should this just get included in the life history?
+# Load WA specific length of maturity data
 maturity_mean <- CheckEM::maturity %>%
-  dplyr::filter(!marine_region %in% c("SW")) %>% # Change here for each marine park
+  dplyr::filter(!marine_region %in% c("SW")) %>% # Change here for your spatial location
   dplyr::group_by(family, genus, species, sex) %>%
   dplyr::slice(which.min(l50_mm)) %>%
   ungroup() %>%
@@ -50,6 +51,7 @@ maturity_mean <- CheckEM::maturity %>%
   ungroup() %>%
   glimpse()
 
+# Create large bodied carnivore metric
 large_bodied_carnivores <- CheckEM::australia_life_history %>%
   dplyr::filter(fb_trophic_level > 2.8) %>%
   dplyr::filter(length_max_cm > 40) %>%
@@ -64,12 +66,14 @@ large_bodied_carnivores <- CheckEM::australia_life_history %>%
   dplyr::select(family, genus, species, l50) %>%
   glimpse()
 
+# Load BRUV fish count data
 count <- readRDS(paste0("data/staging/", name, "_BRUVs_complete_count.RDS")) %>%
   dplyr::rename(sample = opcode) %>%
   dplyr::select(campaignid, sample, family, genus, species, count) %>%
   dplyr::mutate(scientific_name = paste(family, genus, species, sep = " ")) %>%
   glimpse()
 
+# Create total abundance (ta) and species richness (sr)
 ta.sr <- count %>%
   dplyr::select(-c(family, genus, species)) %>%
   dplyr::group_by(campaignid, sample, scientific_name) %>%
@@ -81,11 +85,13 @@ ta.sr <- count %>%
   pivot_longer(cols = c("total_abundance", "species_richness"), names_to = "response", values_to = "number") %>%
   glimpse() # Should be nsamps * 2 = 594
 
+# Create CTI using CheckEM function
 cti <- CheckEM::create_cti(data = count) %>%
   dplyr::rename(number = cti) %>%
   dplyr::mutate(response = "cti") %>%
   glimpse()
 
+# Join together all count (maxn) fish metrics
 tidy_maxn <- bind_rows(ta.sr, cti) %>%
   dplyr::select(-c(log_count, w_sti)) %>%
   dplyr::left_join(benthos) %>%
@@ -95,8 +101,10 @@ tidy_maxn <- bind_rows(ta.sr, cti) %>%
                 !is.na(geoscience_aspect)) %>% # Not valid values for modelling so will remove them now
   glimpse()
 
+# Save metric data for use in modelling scripts
 saveRDS(tidy_maxn, file = paste0("data/tidy/", name, "_tidy-count.rds"))
 
+# Load BRUV fish length data
 length <- readRDS(paste0("data/staging/", name, "_BRUVs_complete_length.RDS")) %>%
   dplyr::rename(sample = opcode) %>%
   dplyr::select(campaignid, sample, family, genus, species, length_mm, number) %>%
@@ -105,6 +113,7 @@ length <- readRDS(paste0("data/staging/", name, "_BRUVs_complete_length.RDS")) %
   glimpse()
 length(unique(length$sample))
 
+# Test to check which species are contained in the metric
 all_species <- length %>%
   distinct(scientific_name) %>%
   glimpse()
@@ -118,6 +127,7 @@ metadata_length <- length %>%
   distinct(campaignid, sample) %>%
   glimpse()
 
+# Create metric for large bodied carnivores greater than length of maturity
 big_carn <- length %>%
   dplyr::filter(length_mm > l50) %>%
   dplyr::group_by(campaignid, sample) %>%
@@ -131,6 +141,7 @@ big_carn <- length %>%
 # Check number of samples that are > 0
 nrow(filter(big_carn, number > 0))/nrow(big_carn)
 
+# Create metric for large bodied carnivores smaller than length of maturity
 small_carn <- length %>%
   dplyr::filter(length_mm < l50) %>%
   dplyr::group_by(campaignid, sample) %>%
@@ -144,12 +155,13 @@ small_carn <- length %>%
 # Check number of samples that are > 0
 nrow(filter(small_carn, number > 0))/nrow(small_carn)
 
+# Join the two datasets together and join back to the metadata
 tidy_length <- bind_rows(big_carn, small_carn) %>%
   dplyr::left_join(metadata) %>%
   dplyr::left_join(metadata_bathy_derivatives) %>%
   glimpse()
 
-# Visualise spatial patterns
+# Visualise spatial patterns in length metrics
 preds <- readRDS(paste0("data/spatial/rasters/", name, "_bathymetry-derivatives.rds"))
 plot(preds)
 names(preds)
@@ -193,5 +205,6 @@ fig <- plot_ly() %>%
 
 fig
 
+# Save tidy length data for use in modelling scripts
 saveRDS(tidy_length, file = paste0("data/tidy/", name, "_tidy-length.rds"))
 

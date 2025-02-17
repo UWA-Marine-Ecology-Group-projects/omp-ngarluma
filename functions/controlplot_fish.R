@@ -64,7 +64,7 @@ controlplot_fish <- function(data, amp_abbrv, state_abbrv, title) {
   }
 
   if (all(c("year", "cti_mean", "cti_se_mean", "zone_new") %in% names(data))) {
-    sst <- readRDS(paste0("data/", park, "/spatial/oceanography/",
+    sst <- readRDS(paste0("data/spatial/oceanography/",
                           name, "_SST_time-series.rds")) %>%
       dplyr::mutate(year = as.numeric(year)) %>%
       group_by(year) %>%

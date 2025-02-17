@@ -12,7 +12,6 @@ library(scatterpie)
 
 # Set the study name
 name <- "DampierAMP"
-park <- "dampier"
 
 # Set cropping extent - larger than most zoomed out plot
 e <- ext(116.7, 117.7,-20.919, -20)
@@ -22,18 +21,18 @@ site_limits = c(116.779, 117.544, -20.738, -20.282) # For Dampier match it to th
 # Load necessary spatial files
 sf_use_s2(T)
 # Australian outline and state and commonwealth marine parks
-aus    <- st_read("data/south-west network/spatial/shapefiles/STE_2021_AUST_GDA2020.shp") %>%
+aus    <- st_read("data/spatial/shapefiles/STE_2021_AUST_GDA2020.shp") %>%
   st_make_valid()
 ausc <- st_crop(aus, e)
 
-preds <- readRDS("data/dampier/spatial/rasters/DampierAMP_bathymetry-derivatives.rds")
+preds <- readRDS("data/spatial/rasters/DampierAMP_bathymetry-derivatives.rds")
 
-metadata_bathy_derivatives <- readRDS(paste0("data/", park, "/tidy/", name, "_metadata-bathymetry-derivatives.rds")) %>%
+metadata_bathy_derivatives <- readRDS(paste0("data/tidy/", name, "_metadata-bathymetry-derivatives.rds")) %>%
   clean_names() %>%
   glimpse()
 
 # Australian outline and state and commonwealth marine parks
-marine_parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+marine_parks <- st_read("data/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
   dplyr::filter(name %in% c("Dampier")) %>%
   arrange(zone) %>%
   glimpse()
@@ -87,9 +86,9 @@ marine_parks_state <- marine_parks %>%
 # ggsave(filename = "plots/dampier/habitat/DampierAMP_scatterpies.png",
 #        height = 6, width = 11, dpi = 300, bg = "white")
 
-benthosboss <- readRDS(paste0("data/", park, "/raw/", name, "_BOSS_benthos.RDS")) %>%
+benthosboss <- readRDS(paste0("data/raw/", name, "_BOSS_benthos.RDS")) %>%
   dplyr::rename(sample = period)
-benthosbruv <- readRDS(paste0("data/", park, "/raw/", name, "_BRUVs_benthos.RDS")) %>%
+benthosbruv <- readRDS(paste0("data/raw/", name, "_BRUVs_benthos.RDS")) %>%
   dplyr::rename(sample = opcode)
 
 benthos <- bind_rows(benthosboss, benthosbruv) %>%
@@ -146,5 +145,5 @@ ggplot() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
-ggsave(filename = "plots/dampier/habitat/DampierAMP_scatterpies.png",
+ggsave(filename = "plots/habitat/DampierAMP_scatterpies.png",
        height = 6, width = 11, dpi = 300, bg = "white")

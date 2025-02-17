@@ -1,16 +1,16 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
+# Project: Parks Australia - Our Marine Parks Ngarluma
 # Data:    Fish data synthesis
 # Task:    Model fish data using the full subsets approach from @beckyfisher/FSSgam
 # Author:  Claude Spencer
 # Date:    June 2024
 ###
 
+# Clear the environment
 rm(list = ls())
 
 # Set the study name
 name <- "DampierAMP"
-park <- "dampier"
 
 library(mgcv)
 library(tidyverse)
@@ -270,18 +270,18 @@ predicted_fish <- cbind(preddf,
                         "p_richness" = mgcv::predict.gam(m_richness, preddf, type = "response",
                                                          se.fit = T))
 
-test <- predicted_fish %>%
-  dplyr::select(status, p_immature.fit) %>%
-  dplyr::group_by(status) %>%
-  summarise(mean = mean(p_immature.fit, na.rm = T))
-
-test <- predicted_fish %>%
-  dplyr::select(geoscience_depth, p_mature.fit) %>%
-  dplyr::mutate(depth = if_else(geoscience_depth < -20, "deep", "shallow")) %>%
-  dplyr::filter(!is.na(p_mature.fit)) %>%
-  dplyr::group_by(depth) %>%
-  summarise(mean = mean(p_mature.fit, na.rm = T))
-  glimpse()
+# test <- predicted_fish %>%
+#   dplyr::select(status, p_immature.fit) %>%
+#   dplyr::group_by(status) %>%
+#   summarise(mean = mean(p_immature.fit, na.rm = T))
+# 
+# test <- predicted_fish %>%
+#   dplyr::select(geoscience_depth, p_mature.fit) %>%
+#   dplyr::mutate(depth = if_else(geoscience_depth < -20, "deep", "shallow")) %>%
+#   dplyr::filter(!is.na(p_mature.fit)) %>%
+#   dplyr::group_by(depth) %>%
+#   summarise(mean = mean(p_mature.fit, na.rm = T))
+#   glimpse()
 
 prasts <- rast(predicted_fish %>% dplyr::select(x, y, starts_with("p_")),
                crs = "epsg:4326")

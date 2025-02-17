@@ -4,7 +4,7 @@ library(tidyverse)
 library(CheckEM)
 library(sf)
 
-ala <- read.csv("data/dampier/raw/records-2025-01-29.csv") %>%
+ala <- read.csv("data/raw/records-2025-01-29.csv") %>%
   clean_names() %>%
   dplyr::select(decimallatitude, decimallongitude, class, order, family, genus, species) %>%
   distinct() %>%
@@ -13,7 +13,7 @@ ala <- read.csv("data/dampier/raw/records-2025-01-29.csv") %>%
 
 ala_sf <- st_as_sf(ala, coords = c("decimallongitude", "decimallatitude"), crs = 4326)
 
-parks <- st_read("data/south-west network/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
+parks <- st_read("data/spatial/shapefiles/western-australia_marine-parks-all.shp") %>%
   dplyr::filter(name %in% "Dampier") %>%
   glimpse()
 
@@ -29,14 +29,14 @@ ggplot() +
   theme_minimal() +
   coord_sf()
 
-dat <- readRDS("data/dampier/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
+dat <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   dplyr::filter(!family %in% c("Elapidae", "Cheloniidae", "Sepiidae", "SUS", "Loliginidae", "Unknown")) %>%
   distinct(family, genus, species) %>%
   dplyr::filter(!species %in% c("spp", "sp1", "sp3", "sp")) %>%
   distinct() %>%
   glimpse()
 
-dat_not <- readRDS("data/dampier/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
+dat_not <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   dplyr::filter(!family %in% c("Elapidae", "Cheloniidae", "Sepiidae", "SUS", "Loliginidae", "Unknown")) %>%
   distinct(family, genus, species) %>%
   dplyr::filter(species %in% c("spp", "sp1", "sp3", "sp")) %>%
@@ -49,7 +49,7 @@ UWA_not_ALA <- anti_join(dat, mp_species, by = c("family", "genus", "species"))
 # Find species in ALA data but not in UWA data
 ALA_not_UWA <- anti_join(mp_species, dat, by = c("family", "genus", "species"))
 
-keesing <- read.csv("data/dampier/raw/keesing_2019_species.csv") %>%
+keesing <- read.csv("data/raw/keesing_2019_species.csv") %>%
   clean_names() %>%
   separate_wider_delim(species, names = c("genus", "species"), delim = " ",
                        too_many = "drop") %>%
