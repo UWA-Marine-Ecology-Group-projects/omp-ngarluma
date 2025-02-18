@@ -1,5 +1,5 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
+# Project: Parks Australia - Our Marine Parks Ngarluma
 # Data:    Fish data synthesis & habitat models derived from FSSgam
 # Task:    Create post-modelling fish figures for marine park reporting
 # Author:  Claude Spencer
@@ -11,7 +11,6 @@ rm(list = ls())
 
 # Set the study name
 name <- "DampierAMP"
-park <- "dampier"
 
 # Load libraries
 library(tidyverse)
@@ -29,6 +28,7 @@ library(png)
 file.sources = list.files(pattern = "*.R", path = "functions/", full.names = T)
 sapply(file.sources, source, .GlobalEnv)
 
+# Load the fish predictions
 dat <- readRDS(paste0("output/fish/",
                       name, "_predicted-fish.RDS")) %>%
   rast(crs = "epsg:4326")
@@ -55,21 +55,23 @@ marine_parks_state <- marine_parks %>%
 aus    <- st_read("data/spatial/shapefiles/aus-shapefile-w-investigator-stokes.shp")
 ausc <- st_crop(aus, e)
 
-# Spatial predictions
-
+# Create a figure of fish spatial predictions
 prediction_limits = c(116.779, 117.544, -20.738, -20.282)
 fishmetric_plot(prediction_limits)
 
 ggsave(paste0("plots/fish/", name, "_individual-predictions.png"),
        width = 9, height = 5, dpi = 300, units = "in", bg = "white")
 
+# Create 'temporal' plots of fish metrics from spatial predictions 
 controldata_fish(year = 2023, amp_abbrv = "DMP", state_abbrv = NA)
 
+# Shallow ecosystem depth contour
 controlplot_fish(data = park_dat.shallow, amp_abbrv = "DMP",
                  state_abbrv = NA, title = "Shallow (0 - 30 m)")
 ggsave(paste0("plots/fish/", name, "_shallow_control-plots.png"),
        height = 7, width = 8, dpi = 300, units = "in", bg = "white")
 
+# Mesophotic ecosystem depth contour
 controlplot_fish(data = park_dat.meso, amp_abbrv = "DMP",
                  state_abbrv = NA, title = "Mesophotic (30 - 70 m)")
 ggsave(paste0("plots/fish/", name, "_mesophotic_control-plots.png"),

@@ -1,5 +1,5 @@
 ###
-# Project: NESP 4.20 - Marine Park Dashboard reporting
+# Project: Parks Australia - Our Marine Parks Ngarluma
 # Data:    Habitat data synthesis & habitat models derived from FSSgam
 # Task:    Create post-modelling habitat figures for marine park reporting
 # Author:  Claude Spencer
@@ -11,7 +11,6 @@ rm(list = ls())
 
 # Set the study name
 name <- "DampierAMP"
-park <- "dampier"
 
 # Load libraries
 library(tidyverse)

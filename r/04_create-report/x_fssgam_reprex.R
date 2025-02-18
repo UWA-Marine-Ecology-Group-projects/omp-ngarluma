@@ -1,3 +1,12 @@
+###
+# Project: Parks Australia - Our Marine Parks Ngarluma
+# Data:    Created in reprex
+# Task:    Create a reprex to test aspect effect in FSSgam
+# Author:  Claude Spencer
+# Date:    June 2024
+###
+
+# Clear the environment
 rm(list = ls())
 
 # Load required libraries

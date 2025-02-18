@@ -1,10 +1,22 @@
+###
+# Project: Parks Australia - Our Marine Parks Ngarluma
+# Data:    BRUV count data
+# Task:    Extract IUCN and EPBC threatened species
+# Author:  Claude Spencer
+# Date:    June 2024
+###
+
+# Clear the environment
 rm(list = ls())
 
+# Load libraries
 library(CheckEM)
 library(tidyverse)
 
+# Set the study name
 name <- "DampierAMP"
 
+# Load BRUV count data and join with IUCN and EPBC ranking from life history
 dat <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   dplyr::filter(count > 0) %>%
   distinct(family, genus, species) %>%
@@ -16,9 +28,11 @@ dat <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   arrange(scientific_name) %>%
   glimpse()
 
+# Save table
 write.csv(dat, file = paste0("data/tidy/", name, "_threatened-species.csv"),
           row.names = F)
 
+# check total number of species for the campaign
 num.spp <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   dplyr::filter(count > 0) %>%
   distinct(scientific) %>%
@@ -29,8 +43,7 @@ num.all <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   summarise(count = sum(count)) %>%
   glimpse()
 
-# Try and make a spatial plot of the endangered species
-# speclist <- unique(dat$scientific_name)
+# Make a spatial plot of the endangered species (EPBC only)
 
 dat_threat <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   # left_join(CheckEM::australia_life_history) %>%

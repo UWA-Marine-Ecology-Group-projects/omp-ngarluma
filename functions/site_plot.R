@@ -19,9 +19,21 @@ site_plot <- function(site_limits, # Tighter zoom for this plot
     scale_fill_manual(name = "Australian Marine Parks", guide = "legend",
                       values = with(marine_parks_amp, setNames(colour, zone))) +
     new_scale_fill() +
+    geom_sf(data = kunmunya, aes(fill = zone), colour = NA, alpha = 0.4) +
+    scale_fill_manual(name = "Closed Waters", guide = "legend",
+                      values = with(kunmunya, setNames(colour, zone))) +
+    new_scale_fill() +
     labs(x = NULL, y = NULL) +
     new_scale_fill() +
     geom_sf(data = cwatr, colour = "firebrick", alpha = 1, size = 0.2, lineend = "round") +
+    geom_sf_pattern(data = infrastructure, aes(pattern = Infrastructure, pattern_fill = Infrastructure, colour = Infrastructure), alpha = 0.7,
+                    pattern_density = 0.8, pattern_size = 0.2, pattern_spacing = 0.005, pattern_colour = "grey80") +
+    scale_colour_manual(values = c("Shipping channel" = "#F35B04", "Spoil ground" = "#D90429"), name = "Infrastructure") +
+    scale_pattern_fill_manual(values = c("Shipping channel" = "#F35B04", "Spoil ground" = "#D90429"), name = "Infrastructure") +
+    scale_pattern_manual(values = c("Shipping channel" = "stripe", "Spoil ground" = "crosshatch"), name = "Infrastructure") +
+    new_scale_colour() +
+    # new_scale("pattern_fill") +
+    # new_scale("pattern") +
     geom_sf(data = metadata, alpha = 1, shape = 4, size = 0.8, aes(colour = method)) +
     scale_colour_manual(values = c("BRUV" = "#E1BE6A",
                                    "BOSS" = "#40B0A6"),

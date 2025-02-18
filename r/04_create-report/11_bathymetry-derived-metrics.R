@@ -1,5 +1,15 @@
+###
+# Project: Parks Australia - Our Marine Parks Ngarluma
+# Data:    Pressure data from AODN, formatted in 02_spatial-layers
+# Task:    Create pressure plots (not used in this report)
+# Author:  Claude Spencer
+# Date:    June 2024
+###
+
+# Clear the environment
 rm(list = ls())
 
+# Load libraries
 library(tidyverse)
 library(tidyterra)
 library(terra)
@@ -30,8 +40,10 @@ marine_parks_amp <- marine_parks %>%
   dplyr::filter(epbc %in% "Commonwealth") %>%
   arrange(zone)
 
+# Load 250m resolution spatial covariates
 preds <- readRDS("data/spatial/rasters/DampierAMP_bathymetry-derivatives.rds")
 
+# Load 30m bathymetry compilation dataset
 mb <- rast("data/spatial/rasters/North_West_Shelf_DEM_v2_Bathymetry_2020_30m_MSL_cog.tif") %>%
   project("epsg:4326") %>%
   crop(e) %>%
@@ -39,6 +51,8 @@ mb <- rast("data/spatial/rasters/North_West_Shelf_DEM_v2_Bathymetry_2020_30m_MSL
 plot(mb)
 names(mb) <- "mb_depth"
 
+# Create plots of each spatial covariate, with a different colour ramp and scale
+# Depth
 depth <- ggplot() +
   geom_spatraster(data = preds, aes(fill = geoscience_depth)) +
   scale_fill_viridis_c(na.value = NA, option = "viridis", name = "Depth") +
@@ -54,6 +68,7 @@ depth <- ggplot() +
   theme_minimal() +
   theme(panel.grid = element_blank())
 
+# Aspect
 aspect <- ggplot() +
   geom_spatraster(data = preds, aes(fill = geoscience_aspect)) +
   scale_fill_viridis_c(na.value = NA, option = "inferno", name = "Aspect") +
@@ -69,6 +84,7 @@ aspect <- ggplot() +
   theme_minimal() +
   theme(panel.grid = element_blank())
 
+# Roughness
 roughness <- ggplot() +
   geom_spatraster(data = preds, aes(fill = geoscience_roughness)) +
   scale_fill_viridis_c(na.value = NA, option = "turbo", name = "Roughness") +
@@ -84,6 +100,7 @@ roughness <- ggplot() +
   theme_minimal() +
   theme(panel.grid = element_blank())
 
+# Detrended bathymetry
 detrended <- ggplot() +
   geom_spatraster(data = preds, aes(fill = geoscience_detrended)) +
   scale_fill_viridis_c(na.value = NA, option = "rocket", name = "Detrended") +
@@ -99,16 +116,18 @@ detrended <- ggplot() +
   theme_minimal() +
   theme(panel.grid = element_blank())
 
+# Save out detrended bathymetry plot (used for sampling design)
 detrended
 ggsave("plots/spatial/DampierAMP_detrended.png",
        height = 6, width = 11, dpi = 300, bg = "white")
 
-# Combine plots
+# Combine other covariates into a plot (used for modelling and not sampling design)
 (depth + aspect)/(roughness + plot_spacer())
 
 ggsave("plots/spatial/DampierAMP_bathymetry-derivatives.png",
        height = 6, width = 11, dpi = 300, bg = "white")
 
+# Create 2 separate plots for comparison between 250m bathy and 30m bathy
 depth <- ggplot() +
   geom_spatraster(data = preds, aes(fill = geoscience_depth)) +
   scale_fill_viridis_c(na.value = NA, option = "viridis", name = "Depth (250m res)") +
@@ -139,6 +158,7 @@ mb_depth <- ggplot() +
   theme_minimal() +
   theme(panel.grid = element_blank())
 
+# Combine and save out plot
 depth / mb_depth + plot_annotation(tag_levels = "a") &
   theme(legend.justification = "left")
 ggsave("plots/spatial/DampierAMP_multibeam-comparison.png",

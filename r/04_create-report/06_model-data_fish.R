@@ -12,6 +12,7 @@ rm(list = ls())
 # Set the study name
 name <- "DampierAMP"
 
+# Load libraries
 library(mgcv)
 library(tidyverse)
 library(terra)
@@ -20,15 +21,16 @@ library(predicts)
 library(FSSgam)
 library(CheckEM)
 
+# Load BRUV count metrics dataset
 tidy_maxn <- readRDS(paste0("data/tidy/", name, "_tidy-count.rds")) %>%
   glimpse()
 
-# # Re-set the predictors for modeling----
+# Re-set the predictors for modeling
 names(tidy_maxn)
 pred.vars = c("reef", "geoscience_depth", "geoscience_aspect",
               "geoscience_roughness", "geoscience_detrended")
 
-# Check to make sure Response vector has not more than 80% zeros----
+# Check to make sure the response vector has less than 80% zeros
 unique.vars <- unique(as.character(tidy_maxn$response))
 
 resp.vars <- character()
@@ -39,13 +41,13 @@ for(i in 1:length(unique.vars)){
 }
 resp.vars # All good
 
-# Run the full subset model selection----
+# Run the full subset model selection
 savedir <- "output/fish/"
 factor.vars <- c("status")
 out.all     <- list()
 var.imp     <- list()
 
-# Loop through the FSS function for each Taxa----
+# Loop through the FSS function for each response
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
   use.dat <- as.data.frame(tidy_maxn[which(tidy_maxn$response == resp.vars[i]), ])
@@ -90,7 +92,7 @@ for(i in 1:length(resp.vars)){
   }
 }
 
-# Save model fits, data, and importance scores---
+# Save model fits, data, and importance scores
 names(out.all) <- resp.vars
 names(var.imp) <- resp.vars
 all.mod.fits   <- do.call("rbind",out.all)
@@ -98,10 +100,11 @@ all.var.imp    <- do.call("rbind",var.imp)
 write.csv(all.mod.fits[ , -2], file = paste(savedir, paste(name, "all.mod.fits.csv", sep = "_"), sep = "/"))
 write.csv(all.var.imp, file = paste(savedir, paste(name, "all.var.imp.csv", sep = "_"), sep = "/"))
 
+# Load BRUV length metric dataset
 tidy_length <- readRDS(paste0("data/tidy/", name, "_tidy-length.rds")) %>%
   glimpse()
 
-# Check to make sure Response vector has not more than 80% zeros----
+# Check to make sure the response variables have less than 80% zeros
 unique.vars <- unique(tidy_length$response)
 
 resp.vars <- character()
@@ -112,15 +115,15 @@ for(i in 1:length(unique.vars)){
 }
 resp.vars
 
-# Run the full subset model selection----
+# Run the full subset model selection
 name_length <- paste(name,"length", sep = "_")
-out.all = list()
-var.imp = list()
+out.all <- list()
+var.imp <- list()
 
-# Loop through the FSS function for each Taxa----
+# Loop through the FSS function for each response variable
 for(i in 1:length(resp.vars)){
   print(resp.vars[i])
-  use.dat = as.data.frame(tidy_length[which(tidy_length$response==resp.vars[i]),])
+  use.dat = as.data.frame(tidy_length[which(tidy_length$response == resp.vars[i]),])
   use.dat$campaignid <- as.factor(use.dat$campaignid)
   use.dat$status <- as.factor(use.dat$status)
   Model1  <- gam(number ~ s(geoscience_depth, k = 3, bs = 'cr'),
@@ -136,8 +139,8 @@ for(i in 1:length(resp.vars)){
                                   max.predictors = 3
   )
   out.list=fit.model.set(model.set,
-                         max.models=600,
-                         parallel=T)
+                         max.models = 600,
+                         parallel = T)
   names(out.list)
 
   out.list$failed.models # examine the list of failed models
@@ -162,7 +165,7 @@ for(i in 1:length(resp.vars)){
   }
 }
 
-# Model fits and importance---
+# Save out the model tables and importance scores
 names(out.all) = resp.vars
 names(var.imp) = resp.vars
 all.mod.fits = do.call("rbind", out.all)
@@ -170,11 +173,11 @@ all.var.imp = do.call("rbind", var.imp)
 write.csv(all.mod.fits[ , -2], file = paste(savedir, paste(name_length, "all.mod.fits.csv", sep = "_"), sep = "/"))
 write.csv(all.var.imp, file = paste(savedir, paste(name_length, "all.var.imp.csv", sep = "_"), sep = "/"))
 
-# read in
+# Join the count and length metrics for model prediction
 fabund <- bind_rows(tidy_maxn, tidy_length) %>%
   glimpse()
 
-# Load predictions in Spatraster format
+# Load the spatial covariates in raster format
 preds <- readRDS(paste(paste0('data/spatial/rasters/', name),    # This is ignored - too big!
                        'bathymetry-derivatives.rds', sep = "_"))
 plot(preds)
@@ -184,14 +187,14 @@ preddf <- preds %>%
   as.data.frame(xy = T) %>%
   glimpse()
 
-# Predicted reef - extents don't match
+# Load predicted reef from 05_model-data_benthos
 pred_reef <- readRDS(paste0("output/habitat/",
                             name, "_predicted-habitat.rds")) %>%
   terra::subset("p_reef.fit")
 plot(pred_reef)
 names(pred_reef) <- "reef"
 
-# Add predicted reef on for fish modelling
+# Add predicted reef onto spatial covariates for fish modelling
 presp <- vect(preddf, geom = c("x", "y"))
 preddf <- cbind(preddf, terra::extract(pred_reef, presp, ID = F))
 names(preddf)
@@ -200,7 +203,7 @@ names(preddf)
 preds <- rast(preddf, crs = "epsg:4326")
 plot(preds)
 
-# Add on status for prediction status
+# Load status raster (large file is ignored)
 status <- rast("data/spatial/rasters/status_raster.tif")
 plot(status)
 
@@ -220,29 +223,21 @@ m_richness <- gam(number ~ s(geoscience_detrended, k = 3, bs = "cr") +
                   data = fabund %>% dplyr::filter(response %in% "species_richness"),
                   family = gaussian(link = "identity"))
 summary(m_richness)
-AICc(m_richness)
-plot(m_richness)
-
-m_richnessas <- gam(number ~ s(geoscience_detrended, k = 3, bs = "cr") +
-                    s(reef, k = 3, bs = "cr") +s(geoscience_aspect, bs = "cc"),
-                  data = fabund %>% dplyr::filter(response %in% "species_richness"),
-                  family = gaussian(link = "identity"))
-summary(m_richnessas)
-AICc(m_richnessas)
+# plot(m_richness)
 
 # CTI
 m_cti <- gam(number ~ s(geoscience_depth, k = 3, bs = "cr"),
              data = fabund %>% dplyr::filter(response %in% "cti"),
              family = gaussian(link = "identity"))
 summary(m_cti)
-plot(m_cti)
+# plot(m_cti)
 
 # Greater than Lm large bodied carnivores
 m_mature <- gam(number ~ s(reef, k = 3, bs = "cr"),
                 data = fabund %>% dplyr::filter(response %in% "greater than Lm carnivores"),
                 family = tw())
 summary(m_mature)
-plot(m_mature)
+# plot(m_mature)
 
 # Smaller than Lm large bodied carnivores
 m_immature <- gam(number ~ s(geoscience_detrended, k = 3, bs = "cr") +
@@ -250,16 +245,8 @@ m_immature <- gam(number ~ s(geoscience_detrended, k = 3, bs = "cr") +
                   data = fabund %>% dplyr::filter(response %in% "smaller than Lm carnivores"),
                   family = tw())
 summary(m_immature)
-AICc(m_immature)
 
-m_immatureas <- gam(number ~ s(geoscience_detrended, k = 3, bs = "cr") + s(geoscience_aspect, bs = "cc") +
-                    status,
-                  data = fabund %>% dplyr::filter(response %in% "smaller than Lm carnivores"),
-                  family = tw())
-summary(m_immatureas)
-AICc(m_immatureas)
-# Predict
-
+# Predict the top models
 predicted_fish <- cbind(preddf,
                         "p_mature" = mgcv::predict.gam(m_mature, preddf, type = "response",
                                                        se.fit = T),
@@ -269,19 +256,6 @@ predicted_fish <- cbind(preddf,
                                                     se.fit = T),
                         "p_richness" = mgcv::predict.gam(m_richness, preddf, type = "response",
                                                          se.fit = T))
-
-# test <- predicted_fish %>%
-#   dplyr::select(status, p_immature.fit) %>%
-#   dplyr::group_by(status) %>%
-#   summarise(mean = mean(p_immature.fit, na.rm = T))
-# 
-# test <- predicted_fish %>%
-#   dplyr::select(geoscience_depth, p_mature.fit) %>%
-#   dplyr::mutate(depth = if_else(geoscience_depth < -20, "deep", "shallow")) %>%
-#   dplyr::filter(!is.na(p_mature.fit)) %>%
-#   dplyr::group_by(depth) %>%
-#   summarise(mean = mean(p_mature.fit, na.rm = T))
-#   glimpse()
 
 prasts <- rast(predicted_fish %>% dplyr::select(x, y, starts_with("p_")),
                crs = "epsg:4326")
@@ -294,7 +268,7 @@ xy <- fabund %>%
   distinct(x, y) %>%
   glimpse()
 
-# resp.vars <- names(preddf)[18:ncol(preddf)]
+names(predicted_fish)
 resp.vars <- c("p_mature", "p_cti",
                "p_richness", "p_immature")
 
@@ -340,6 +314,7 @@ for(i in 1:length(resp.vars)) {
 
 glimpse(preddf_m)
 
+# Create a 10km buffer around sites to mask predictions by
 sites <- st_as_sf(tidy_maxn, coords = c("longitude_dd", "latitude_dd"), crs = 4326) %>%
   st_transform(9473) %>%
   st_union()
@@ -349,10 +324,12 @@ buffer <- sites %>%
   st_transform(4326) %>%
   vect()
 
+# Also remove shipping channel and spoil grounds that were not sampled in
 remove <- st_read("data/spatial/shapefiles/remove-shipping-channel.shp")
 channel <- st_read("data/spatial/shapefiles/port-walcott_shipping-channel.shp")
 spoil   <- st_read("data/spatial/shapefiles/port-walcott_spoil-grounds.shp")
 
+# Mask
 predfish <- rast(preddf_m, crs = "epsg:4326") %>%
   mask(buffer) %>%
   mask(remove, inverse = T) %>%
@@ -360,14 +337,9 @@ predfish <- rast(preddf_m, crs = "epsg:4326") %>%
   trim()
 plot(predfish)
 
-ggplot() +
-  geom_spatraster(data = predfish, aes(fill = p_mature.fit)) +
-  geom_sf(data = channel) +
-  geom_sf(data = spoil) +
-  coord_sf()
-
 preddf_m <- as.data.frame(predfish, xy = T)
 
+# Save predictions out as raster and tiff
 saveRDS(preddf_m, paste0("output/fish/", name,
                          "_predicted-fish.RDS"))
 
