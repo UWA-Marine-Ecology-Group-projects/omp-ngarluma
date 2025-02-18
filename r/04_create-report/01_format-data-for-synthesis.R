@@ -18,7 +18,7 @@ library(CheckEM)
 
 ## BRUV synthesis
 # Load and format metadata
-metadata <- read_metadata("data/dampier/raw/temp/BRUVs", method = "BRUVs") %>%
+metadata <- read_metadata("data/raw/temp/BRUVs", method = "BRUVs") %>%
   clean_names() %>%
   dplyr::select(campaignid, opcode, longitude_dd, latitude_dd, date_time, depth_m, status, site, location, successful_count, successful_length,
                 successful_habitat_forward, successful_habitat_backward,
@@ -28,10 +28,10 @@ metadata <- read_metadata("data/dampier/raw/temp/BRUVs", method = "BRUVs") %>%
   glimpse()
 
 # Save metadata
-saveRDS(metadata, file = paste0("data/dampier/raw/", name, "_BRUVs_metadata.RDS"))
+saveRDS(metadata, file = paste0("data/raw/", name, "_BRUVs_metadata.RDS"))
 
 # Load and format count data
-count <- read_points("data/dampier/raw/temp/BRUVs", method = "BRUVs") %>%
+count <- read_points("data/raw/temp/BRUVs", method = "BRUVs") %>%
   clean_names() %>%
   right_join(metadata) %>% # Join back samples with no fish
   dplyr::filter(successful_count %in% "Yes") %>%
@@ -52,7 +52,7 @@ count <- read_points("data/dampier/raw/temp/BRUVs", method = "BRUVs") %>%
   glimpse()
 
 # Save count data
-saveRDS(count, file = paste0("data/dampier/raw/", name, "_BRUVs_complete_count.RDS"))
+saveRDS(count, file = paste0("data/raw/", name, "_BRUVs_complete_count.RDS"))
 
 # Load and format length data
 length <- read_em_length("data/dampier/raw/temp/BRUVs") %>%
