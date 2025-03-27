@@ -35,6 +35,7 @@ mp_species <- st_intersection(ala_sf, parks) %>%
   distinct(family, genus, species) %>%
   dplyr::filter(!species %in% "") %>%
   dplyr::mutate(species = sub("^\\S+\\s+(\\S+)$", "\\1", species)) %>%
+  dplyr::mutate(ALA = TRUE) %>%
   glimpse()
 
 ggplot() +
@@ -49,6 +50,7 @@ dat <- readRDS("data/raw/dampierAMP_BRUVs_complete_count.RDS") %>%
   distinct(family, genus, species) %>%
   dplyr::filter(!species %in% c("spp", "sp1", "sp3", "sp")) %>%
   distinct() %>%
+  dplyr::mutate(UWA = TRUE) %>%
   glimpse()
 
 # Checking the spps
@@ -73,6 +75,7 @@ keesing <- read.csv("data/raw/keesing_2019_species.csv") %>%
   # dplyr::filter(!is.na(pres_2017)) %>%
   dplyr::filter(!species %in% c("sp.", "-")) %>%
   dplyr::select(family, genus, species) %>%
+  dplyr::mutate(CSIRO = TRUE) %>%
   glimpse()
 
 # Find species in UWA data but not in keesing data
@@ -82,6 +85,13 @@ UWA_not_keesing <- anti_join(dat, keesing, by = c("family", "genus", "species"))
 keesing_not_UWA <- anti_join(keesing, dat, by = c("family", "genus", "species"))
 
 # Make a list of all the unique species seen across the three datasets
-all_species <- mp_species %>%
-  full_join(dat, by = c("family", "genus", "species")) %>%
-  full_join(keesing, by = c("family", "genus", "species"))
+all_species <- mp_species %>% # ALA data
+  full_join(dat, by = c("family", "genus", "species")) %>% # UWA data
+  full_join(keesing, by = c("family", "genus", "species")) %>% # CSIRO data
+  dplyr::mutate(across(c(ALA, UWA, CSIRO), ~ replace_na(.x, FALSE))) %>%
+  dplyr::select(family, genus, species, ALA, CSIRO, UWA) %>%
+  dplyr::mutate(New = if_else(ALA == FALSE & CSIRO == FALSE, TRUE, FALSE)) %>%
+  arrange(family, genus, species) %>%
+  glimpse()
+
+write.csv(all_species, "data/tidy/DampierAMP_all-species.csv", row.names = F)
